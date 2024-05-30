@@ -20,6 +20,7 @@ export const HomeScreen = () => {
   const searchRef = useRef<any>(null);
   const [filteredDataSource, setFilteredDataSource] = useState<Model[]>([]);
   const [masterDataSource, setMasterDataSource] = useState<Model[]>([]);
+  const [selectionOptions, setSelectOptions] = useState<any[]>([]);
 
   const [isImageshow, setImageShow] = useState<boolean>(false);
 
@@ -46,11 +47,14 @@ export const HomeScreen = () => {
 
       if (isFirstTimeLoad) {
         await Storage.setBookmark(Constants.bookmarks);
+        await Storage.setCategories(Constants.categories);
         await Storage.setFirstLoad(false);
       }
       const bookmarks = await Storage.getBookmarks();
+      const categories = await Storage.getCategories();
       setMasterDataSource(bookmarks);
       setFilteredDataSource(bookmarks);
+      setSelectOptions(categories);
     } catch (err) {}
   };
 
@@ -78,7 +82,7 @@ export const HomeScreen = () => {
         masterDataSource.filter(model =>
           (model.category ?? '')
             ?.toLocaleLowerCase()
-            ?.includes(text.toLocaleLowerCase()),
+            ?.includes((text ?? '').toLocaleLowerCase()),
         ),
       );
     }
@@ -100,7 +104,7 @@ export const HomeScreen = () => {
             />
             <RNPickerSelect
               onValueChange={filterbyCategory}
-              items={[{label: 'All', value: 'All'}, ...Constants.categories]}
+              items={[{label: 'All', value: 'All'}, ...selectionOptions]}
             />
           </View>
         }

@@ -8,7 +8,7 @@ import {makeBookmarkFlat} from './helper';
 
 export const getBookmarkJson = async (
   file?: DocumentPickerResponse,
-): Promise<Model[]> => {
+): Promise<Category[]> => {
   // Load the HTML into Cheerio
   if (file) {
     const html = await RNFS.readFile(file?.uri, 'utf8');
@@ -45,7 +45,7 @@ export const getBookmarkJson = async (
       });
     });
 
-    return makeBookmarkFlat(linksWithCategory);
+    return linksWithCategory;
 
     //saveToJsonFile(linksWithCategory);
   }

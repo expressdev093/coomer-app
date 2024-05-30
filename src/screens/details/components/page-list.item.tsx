@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import {useDirectory, useStoragePermissions} from '../../../hooks';
 import RNFS from 'react-native-fs';
-import {scrapPages} from '../../../helpers';
+import {formatFileSize, scrapPages} from '../../../helpers';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {Constants} from '../../../constants';
 import * as ScopedStorage from 'react-native-scoped-storage';
@@ -71,12 +71,24 @@ export const PageListItem: React.FC<Props> = ({
   const renderLoading = <ActivityIndicator size={'large'} />;
   const renderTitle = (
     <View style={style.titleView}>
-      <Text>Download Page {page.title}</Text>
+      <View style={{flex: 1}}>
+        <Text>Download Page {page.title}</Text>
+        {file && (
+          <Text style={style.size}>
+            Size {formatFileSize((file as any).size)}
+          </Text>
+        )}
+      </View>
       {file && <AntDesign name="checkcircle" size={24} color="green" />}
     </View>
   );
+
+  console.log(file);
   return (
-    <TouchableOpacity style={style.container} onPress={loadLinks}>
+    <TouchableOpacity
+      disabled={file !== undefined}
+      style={style.container}
+      onPress={loadLinks}>
       {loading ? renderLoading : renderTitle}
     </TouchableOpacity>
   );
@@ -95,4 +107,5 @@ const style = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  size: {},
 });

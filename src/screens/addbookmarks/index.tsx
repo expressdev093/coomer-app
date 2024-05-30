@@ -16,8 +16,13 @@ import * as ScopedStorage from 'react-native-scoped-storage';
 import {ScrollView} from 'react-native-gesture-handler';
 import {Constants} from '../../constants';
 import {getBookmarkJson} from '../../helpers/bookmark.helper';
-import {Model} from '../../typings';
-import {Storage} from '../../helpers';
+import {Category, Model} from '../../typings';
+import {
+  Storage,
+  getCategorySelectLabelAndValue,
+  makeBookmarkFlat,
+  removeOtherLinksAndEmptyCategory,
+} from '../../helpers';
 
 export const AddBookmarkScreen = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -43,15 +48,15 @@ export const AddBookmarkScreen = () => {
   const handleSaveBookmarkJson = async () => {
     try {
       setLoading(true);
-      const models: Model[] = await getBookmarkJson(fileResponse);
-      const coomerModel = models.filter(
-        m =>
-          m.url.startsWith('https://coomer.su') ||
-          m.url.startsWith('https://coomer.party'),
+      const categories: Category[] = await getBookmarkJson(fileResponse);
+      const selectCategoriesOptions = getCategorySelectLabelAndValue(
+        removeOtherLinksAndEmptyCategory(categories),
       );
 
-      console.log('coomerModel', coomerModel.length);
-      await Storage.setBookmark(coomerModel);
+      const models = makeBookmarkFlat(categories);
+
+      await Storage.setBookmark(models);
+      await Storage.setCategories(selectCategoriesOptions);
       setLoading(false);
       Alert.alert('Bookmark Added', 'Bookmark added successfully');
     } catch (err: any) {

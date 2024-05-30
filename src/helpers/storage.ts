@@ -4,6 +4,7 @@ import {Category, Model} from '../typings';
 
 const DIRECTORY_DIR_PATH = 'directory_dir_path';
 const BOOKMARK_JSON = 'bookmark_json';
+const BOOKMARK_CATEGORIES = 'bookmark_categories';
 const IS_AP_LOAD_FIRST_TIME = 'is_app_load_first_time';
 const SHOW_HIDE_IMAGE = 'show_hide_image';
 
@@ -32,6 +33,19 @@ export class Storage {
   static getBookmarks = async (): Promise<Model[]> => {
     const str = (await AsyncStorage.getItem(BOOKMARK_JSON)) ?? '';
     return JSON.parse(str) as Model[];
+  };
+
+  static setCategories = async (value: any[]) => {
+    try {
+      await AsyncStorage.setItem(BOOKMARK_CATEGORIES, JSON.stringify(value));
+    } catch (e) {
+      // saving error
+    }
+  };
+
+  static getCategories = async (): Promise<any[]> => {
+    const str = (await AsyncStorage.getItem(BOOKMARK_CATEGORIES)) ?? '';
+    return JSON.parse(str) as any[];
   };
 
   static setFirstLoad = async (value: boolean) => {

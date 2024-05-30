@@ -135,14 +135,54 @@ export function extractParameterFromString(
 
 export function makeBookmarkFlat(data: Category[]): Model[] {
   const flatData: Model[] = [];
-  data.map(d => {
+
+  removeOtherLinksAndEmptyCategory(data).map(d => {
     d.links.map(l => {
       flatData.push({...l, category: d.category});
     });
   });
 
-  return flatData.map(m => ({
-    ...m,
-    url: m.url.replaceAll('coomer.party', 'coomer.su'),
+  return flatData;
+}
+
+export function removeOtherLinksAndEmptyCategory(
+  categories: Category[],
+): Category[] {
+  return categories
+    .map(cat => ({
+      ...cat,
+      links: cat.links
+        .map(link => ({
+          ...link,
+          url: link.url.startsWith('https://coomer.party')
+            ? link.url.replaceAll('coomer.party', 'coomer.su')
+            : link.url,
+        }))
+        .filter(link => link.url.startsWith('https://coomer.su')),
+    }))
+    .filter(cat => cat.links.length > 0);
+}
+
+export function getCategoriesTitle(categories: Category[]): string[] {
+  return categories.map(cat => cat.category);
+}
+
+export function getCategorySelectLabelAndValue(
+  categories: Category[],
+): {label: string; value: string}[] {
+  return getCategoriesTitle(categories).map(title => ({
+    label: title,
+    value: title,
   }));
+}
+
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) {
+    return '0 Bytes';
+  }
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(2));
+  return `${formattedSize} ${sizes[i]}`;
 }

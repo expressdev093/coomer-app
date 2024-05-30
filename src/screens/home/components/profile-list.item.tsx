@@ -1,6 +1,14 @@
 import React from 'react';
 import {Model} from '../../../typings';
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {
+  Image,
+  Linking,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 type Props = {
   model: Model;
   onModelPress: (model: Model) => void;
@@ -12,6 +20,9 @@ export const ProfileListItem: React.FC<Props> = ({
   onModelPress,
   isImageShow,
 }) => {
+  const handleOpenInBrowser = () => {
+    Linking.openURL(model.url);
+  };
   return (
     <TouchableOpacity style={styles.item} onPress={() => onModelPress(model)}>
       {isImageShow ? (
@@ -26,6 +37,11 @@ export const ProfileListItem: React.FC<Props> = ({
         <View style={styles.categoryView}>
           <Text style={styles.categoryText}>{model.category}</Text>
         </View>
+      </View>
+      <View>
+        <TouchableOpacity onPress={handleOpenInBrowser}>
+          <FontAwesome6 name="firefox-browser" size={24} color="black" />
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -85,7 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 2,
     paddingHorizontal: 5,
-    maxWidth: '50%',
+    maxWidth: '70%',
   },
   categoryText: {
     color: '#fff',
