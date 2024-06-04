@@ -1,6 +1,11 @@
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {DetailScreen, HomeScreen, ModelSearch} from '../screens';
+import {
+  ApiDetailScreen,
+  DetailScreen,
+  HomeScreen,
+  ModelSearch,
+} from '../screens';
 import {Text, TouchableOpacity, View} from 'react-native';
 import {DrawerNavigation} from './drawer.navigation';
 
@@ -18,6 +23,7 @@ export const RootNavigation = () => {
         }}
       />
       <Stack.Screen name="Detail" component={DetailScreen} />
+      <Stack.Screen name="ApiDetail" component={ApiDetailScreen} />
       <Stack.Screen name="ModelSearch" component={ModelSearch} />
     </Stack.Navigator>
   );

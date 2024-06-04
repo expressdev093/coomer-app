@@ -32,7 +32,7 @@ export const HomeScreen = () => {
 
   const onModelPress = useCallback(
     (model: Model) => {
-      navigation.navigate('Detail', {model: model});
+      navigation.navigate('ApiDetail', {model: model});
     },
     [navigation],
   );

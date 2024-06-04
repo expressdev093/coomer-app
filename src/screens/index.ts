@@ -3,3 +3,4 @@ export * from './home';
 export * from './model-search';
 export * from './merge-file';
 export * from './addbookmarks';
+export * from './api-detail';
