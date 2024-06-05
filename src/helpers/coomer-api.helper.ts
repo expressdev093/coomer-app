@@ -1,8 +1,9 @@
-import axios, {isAxiosError} from 'axios';
+import axios, {AxiosError, isAxiosError} from 'axios';
 import {Model} from '../typings';
 import RNFS from 'react-native-fs';
 import {Alert} from 'react-native';
 import {Constants} from '../constants';
+import * as ScopedStorage from 'react-native-scoped-storage';
 
 interface File {
   name: string;
@@ -31,7 +32,7 @@ export interface Post {
   added: string;
   published: string;
   edited: Date | null;
-  file: File;
+  file: File | any;
   attachments: File[];
   poll: any;
   captions: any;
@@ -53,16 +54,18 @@ export class CoomerApiHelper {
     return response.data;
   }
 
-  sanitizeFileName(fileName: string): string {
-    return fileName.replace(/[\/\\\?%*:|"<>]/g, '_');
+  // Function to introduce a delay
+  delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  async startGettingPosts(): Promise<Post[]> {
+  async startGettingPosts(
+    callbackFetchingSize: (message: string) => void,
+    callbackDelay: (message: string, isStart: boolean) => void,
+  ): Promise<Post[]> {
     let offset = 0;
     let hasMorePosts = true;
     const posts: Post[] = [];
-
-    //await fs.ensureDir(OUTPUT_DIR);
 
     while (hasMorePosts) {
       const fetchedPosts = await this.fetchPosts(offset);
@@ -72,72 +75,145 @@ export class CoomerApiHelper {
       }
 
       posts.push(...fetchedPosts);
+      callbackFetchingSize(`${posts.length} posts are fetched`);
       offset += this.PAGE_SIZE;
+      if (offset % 5000 === 0) {
+        callbackDelay('Start 30 seconds delay', true);
+        console.log('Added 30 seconds delay');
+        await this.delay(30000); // Delay for 30 seconds
+        console.log('Added 30 seconds delay compeleted');
+        callbackDelay('Ends 30 seconds delay', false);
+      }
     }
 
     return posts;
   }
 
-  parseVideoFiles(posts: Post[]): string[] {
-    const videoExtensions = [
-      '.mp4',
-      '.mov',
-      '.avi',
-      '.mkv',
-      '.wmv',
-      '.flv',
-      '.webm',
-      '.m4v',
-    ];
-
-    const videoFiles = posts
-      .filter(post => post.file && post.file.name)
-      .filter(item => {
-        const fileName = item.file.name.toLowerCase();
-        return videoExtensions.some(ext => fileName.endsWith(ext));
-      });
-
-    return videoFiles.map(post => this.generateFileUrl(post));
+  isTooManyRequestsError(error: AxiosError): boolean {
+    return error.response?.status === 429;
   }
 
-  pareseImageFiles(posts: Post[]): string[] {
-    const videoExtensions = [
-      '.mp4',
-      '.mov',
-      '.avi',
-      '.mkv',
-      '.wmv',
-      '.flv',
-      '.webm',
-      '.m4v',
-    ];
+  sanitizeFileName(fileName: string): string {
+    return this.cleanFileName(fileName).replaceAll(/[\/\\\?%*:|"<>]/g, '_');
+  }
 
+  cleanFileName(fileName: string): string {
+    return fileName.replace(/[\r\t]+/g, '').trim();
+  }
+
+  parsePosts(posts: Post[], filterExtensions: string[]): string[] {
     const videoFiles = posts
-      .filter(post => post.file && post.file.name)
-      .filter(item => {
-        const fileName = item.file.name.toLowerCase();
-        return !videoExtensions.some(ext => fileName.endsWith(ext));
+      //.filter(post => post.file && post.file.name)
+      .filter(post => {
+        // Check if 'file' property is a video file
+        if (post.file && post.file.name) {
+          const fileName = post.file.name.toLowerCase();
+          return filterExtensions.some(ext => fileName.endsWith(ext));
+        }
+
+        // Check if any attachment is a video file
+        if (
+          post.attachments &&
+          post.attachments.some(att => {
+            const fileName = att.name.toLowerCase();
+            return filterExtensions.some(ext => fileName.endsWith(ext));
+          })
+        ) {
+          return true;
+        }
+
+        return false;
       });
 
-    return videoFiles.map(post => this.generateFileUrl(post));
+    const downloadUrls: string[] = [];
+    videoFiles
+      .map(post => {
+        const url = this.generateFileUrl(post);
+        const attachmentUrls = this.generateUrlsFromAttachments(post);
+        return url ? [url, ...attachmentUrls] : attachmentUrls;
+      })
+      .forEach(u => {
+        downloadUrls.push(...u);
+      });
+
+    return downloadUrls
+      .filter(url => filterExtensions.some(ext => url.endsWith(ext)))
+      .filter(link => link.startsWith('https://'));
   }
+
+  // pareseImageFiles(posts: Post[]): string[] {
+  //   const videoExtensions = [
+  //     '.mp4',
+  //     '.mov',
+  //     '.avi',
+  //     '.mkv',
+  //     '.wmv',
+  //     '.flv',
+  //     '.webm',
+  //     '.m4v',
+  //   ];
+
+  //   const videoFiles = posts
+  //     //.filter(post => post.file && post.file.name)
+  //     .filter(item => {
+  //       const fileName = item.file.name.toLowerCase();
+  //       return !videoExtensions.some(ext => fileName.endsWith(ext));
+  //     });
+
+  //   return videoFiles.map(post => this.generateFileUrl(post));
+  // }
 
   getFileExtension(name: string): string {
     return name.substring(name.lastIndexOf('.') + 1);
   }
 
-  generateFileUrl(post: Post): string {
-    const extension = this.getFileExtension(post.file.name.toLocaleLowerCase());
+  generateUrlsFromAttachments(post: Post): string[] {
+    const urls: string[] = [];
+    post.attachments.forEach((att, index) => {
+      const fileName = this.generateFileName(
+        post,
+        att.name,
+        post.attachments.length > 1 ? index + 1 : 0,
+      );
+      const downloadUrl = `${this.DOWNLOAD_URL}${
+        att.path
+      }?f=${this.sanitizeFileName(fileName)}`;
+
+      urls.push(downloadUrl);
+    });
+    return urls;
+  }
+
+  generateFileUrl(post: Post): string | undefined {
+    if (Object.keys(post.file).length !== 0) {
+      const fileName = this.generateFileName(post, post.file.name);
+
+      return `${this.DOWNLOAD_URL}${post.file.path}?f=${this.sanitizeFileName(
+        fileName,
+      )}`;
+    }
+    return undefined;
+  }
+
+  generateFileName(post: Post, name: string, index: number = 0): string {
+    const extension = this.getFileExtension(name.toLocaleLowerCase());
     const published = post.published;
     const title = post.title;
     const id = post.id;
-    const path = post.file.path;
 
     const publishedDate = this.formatePublishedDate(published);
 
-    const fileName = `${publishedDate}-${title}-${id}.${extension}`;
+    let fileName = `${publishedDate}_${title}_${id}`;
+    if (index !== 0) {
+      fileName += `-${index}`;
+    }
 
-    return `${this.DOWNLOAD_URL}${path}?f=${this.sanitizeFileName(fileName)}`;
+    fileName = this.sanitizeFileName(fileName);
+    fileName = fileName.replace(/[. ]/g, '_');
+    fileName = fileName.replaceAll(/[\r\t\n]+/g, '').trim();
+    fileName += `.${extension}`;
+
+    return fileName;
   }
 
   formatePublishedDate(published: string): string {
@@ -145,26 +221,30 @@ export class CoomerApiHelper {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return `${year}_${month}_${day}`;
   }
 
   saveToFile = async (
     data: string,
     model: Model,
+    length: number,
     type: 'video' | 'images' = 'video',
   ) => {
-    const fileName = `${model.name} ${model.provider} (${type}).txt`;
+    const fileName = `${model.name} ${model.provider} (${length} ${type}).txt`;
     const dirctoryFolder = `${RNFS.DownloadDirectoryPath}/${Constants.directoryName}/${model.name} ${model.provider}`;
 
-    const path = `${dirctoryFolder}/${fileName}`;
-    const fileExists = await RNFS.exists(path);
-    if (fileExists) {
-      // If file exists, remove it first
-      console.log('Remove file');
-      await RNFS.unlink(path);
-    }
-    if (!(await RNFS.exists(dirctoryFolder))) {
+    const dirExist = await RNFS.exists(dirctoryFolder);
+    if (!dirExist) {
       await RNFS.mkdir(dirctoryFolder);
+      // await RNFS.unlink(dirctoryFolder);
+      // console.log(`Directory ${dirctoryFolder} removed`);
+    }
+
+    const path = `${dirctoryFolder}/${fileName}`;
+
+    const fileExist = await RNFS.exists(path);
+    if (fileExist) {
+      await ScopedStorage.deleteFile(path);
     }
 
     await RNFS.writeFile(path, data, 'utf8');

@@ -10,6 +10,17 @@ export const Constants = {
     value: d.category,
   })),
   directoryName: 'coomer',
+  videoExtensions: [
+    '.mp4',
+    '.mov',
+    '.avi',
+    '.mkv',
+    '.wmv',
+    '.flv',
+    '.webm',
+    '.m4v',
+  ],
+  imageExtensions: ['.jpg', '.jpeg'],
 };
 
 // const url = [

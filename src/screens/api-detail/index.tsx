@@ -6,6 +6,7 @@ import {Button} from 'react-native';
 import {Model} from '../../typings';
 
 import {Constants} from '../../constants';
+import {useTimer} from '../../hooks';
 
 // const posts: Post[] = [
 //   {
@@ -148,6 +149,79 @@ import {Constants} from '../../constants';
 //     captions: null,
 //     tags: null,
 //   },
+// {
+//   id: '1057672673',
+//   user: 'audreyandsadie',
+//   service: 'onlyfans',
+//   title: 'Making out in the sunrays 🌞',
+//   content: 'Making out in the sunrays 🌞',
+//   embed: {},
+//   shared_file: false,
+//   added: '2024-05-11T07:42:30.254200',
+//   published: '2024-05-08T09:34:03',
+//   edited: null,
+//   file: {
+//     name: '0hph2svrropuonrw2whk5_source.mp4',
+//     path: '/bc/6e/bc6ee51f77bfee01adcd0a4a523f4b205dfd1825642ff0c6c6d585e4244ff469.mp4',
+//   },
+//   attachments: [],
+//   poll: null,
+//   captions: null,
+//   tags: null,
+// },
+// ];
+
+// const posts: Post[] = [
+//   {
+//     id: '610201142411931648',
+//     user: '284905230003351552',
+//     service: 'fansly',
+//     title: '',
+//     content:
+//       'pretty pussy energy 🌸\n\nand yes i went back to a trimmed bush 🫠',
+//     embed: {},
+//     shared_file: false,
+//     added: '2024-02-21T19:00:51.133661',
+//     published: '2024-02-03T16:27:28',
+//     edited: null,
+//     file: {},
+//     attachments: [
+//       {
+//         name: '610201005782474752.jpeg',
+//         path: '/b0/05/b005c7584a1d711b466f33cbfad49a0b6b783f9185d5b8dad2f57b2cb1764cd0.jpg',
+//       },
+//       {
+//         name: '610201004561932289.jpeg',
+//         path: '/3c/de/3cde498ca0fb033ba17c1924aff960212e0a0e7d25740c9e3d50d73572daae39.jpg',
+//       },
+//     ],
+//     poll: null,
+//     captions: null,
+//     tags: null,
+//   },
+//   {
+//     id: '608440618510725121',
+//     user: '284905230003351552',
+//     service: 'fansly',
+//     title: '',
+//     content:
+//       'Riding Chair First Try\n14:07 mins | 1080p | 60fps\n\nI got an amazing new accessory and have been aching to try it out. A bouncy riding chair so that I can be on top for longer without hurting myself! I had soooo much fun trying out this new toy, and I used multiple angles to make sure we got the best view of my hairy pussy getting stretched out.\n\n#thick #bbw #curvy #chubby #redhead #milf #mombod #bigtits #riding #bbwontop #tummy #redhair #alternative #hairy #hairypussy',
+//     embed: {},
+//     shared_file: false,
+//     added: '2024-02-21T19:01:10.392102',
+//     published: '2024-01-29T19:51:47',
+//     edited: null,
+//     file: {},
+//     attachments: [
+//       {
+//         name: '608439052428914689_preview.mp4',
+//         path: '/50/df/50df82c2a03b5972a6063111edb06109bb91c387d3cbfc21941170305bbac490.mp4',
+//       },
+//     ],
+//     poll: null,
+//     captions: null,
+//     tags: '{thick,bbw,curvy,chubby,redhead,milf,mombod,bigtits,riding,bbwontop,tummy,redhair,alternative,hairy,hairypussy}',
+//   },
 //   {
 //     id: '1057672673',
 //     user: 'audreyandsadie',
@@ -171,16 +245,13 @@ import {Constants} from '../../constants';
 // ];
 
 export const ApiDetailScreen = () => {
+  const [seconds, isStarted, startTimer, stopTimer, resetTimer] = useTimer();
   const navigation = useNavigation();
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>();
   const {params} = useRoute<any>();
 
   const model: Model = params.model;
-
-  useEffect(() => {
-    //fetchPosts();
-  }, [model]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -193,13 +264,46 @@ export const ApiDetailScreen = () => {
       setLoading(true);
       setMessage('getting posts');
       const apiHelper = new CoomerApiHelper(model.url);
-      const posts = await apiHelper.startGettingPosts();
-      const parseVideosLinks = apiHelper.parseVideoFiles(posts);
-      const parseImagesLinks = apiHelper.pareseImageFiles(posts);
+      const posts = await apiHelper.startGettingPosts(
+        m => {
+          setMessage(m);
+        },
+        (m, isStart) => {
+          setMessage(m);
+          if (isStart) {
+            startTimer();
+          } else {
+            setMessage(m);
+            stopTimer();
+            resetTimer();
+          }
+        },
+      );
 
+      const parseVideosLinks = apiHelper.parsePosts(
+        posts,
+        Constants.videoExtensions,
+      );
+      const parseImagesLinks = apiHelper.parsePosts(
+        posts,
+        Constants.imageExtensions,
+      );
+      console.log('posts', posts.length);
+      console.log('parseVideosLinks', parseVideosLinks.length);
+      console.log('parseImagesLinks', parseImagesLinks.length);
       setMessage('Saving Posts');
-      await apiHelper.saveToFile(parseVideosLinks.join('\n'), model, 'video');
-      await apiHelper.saveToFile(parseImagesLinks.join('\n'), model, 'images');
+      await apiHelper.saveToFile(
+        parseVideosLinks.join('\n'),
+        model,
+        parseVideosLinks.length,
+        'video',
+      );
+      await apiHelper.saveToFile(
+        parseImagesLinks.join('\n'),
+        model,
+        parseImagesLinks.length,
+        'images',
+      );
       setLoading(false);
       Alert.alert('File created and saved successfully!');
       setMessage('');
@@ -216,8 +320,10 @@ export const ApiDetailScreen = () => {
         <View>
           <ActivityIndicator size={'large'} />
           <Text>{message}</Text>
+          {isStarted && <Text>{seconds} remaining...</Text>}
         </View>
       )}
+
       <Button title="Fetch Posts" disabled={loading} onPress={fetchPosts} />
     </View>
   );
