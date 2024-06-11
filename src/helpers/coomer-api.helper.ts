@@ -5,6 +5,28 @@ import {Alert} from 'react-native';
 import {Constants} from '../constants';
 import * as ScopedStorage from 'react-native-scoped-storage';
 
+export type OnlyFansDetails = {
+  provider: string;
+  username: string;
+};
+
+const capitalizeFirstLetter = (str: string): string => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+export const extractProviderDetails = (url: string): OnlyFansDetails => {
+  const regex = /https:\/\/([^\/]+)\/(onlyfans|fansly|[^\/]+)\/user\/([^\/]+)/;
+  const match = url.match(regex);
+
+  if (match && match.length === 4) {
+    const provider = match[2];
+    const username = match[3];
+    return {provider: capitalizeFirstLetter(provider), username};
+  } else {
+    throw new Error('Invalid URL format');
+  }
+};
+
 interface File {
   name: string;
   path: string;
@@ -141,28 +163,6 @@ export class CoomerApiHelper {
       .filter(link => link.startsWith('https://'));
   }
 
-  // pareseImageFiles(posts: Post[]): string[] {
-  //   const videoExtensions = [
-  //     '.mp4',
-  //     '.mov',
-  //     '.avi',
-  //     '.mkv',
-  //     '.wmv',
-  //     '.flv',
-  //     '.webm',
-  //     '.m4v',
-  //   ];
-
-  //   const videoFiles = posts
-  //     //.filter(post => post.file && post.file.name)
-  //     .filter(item => {
-  //       const fileName = item.file.name.toLowerCase();
-  //       return !videoExtensions.some(ext => fileName.endsWith(ext));
-  //     });
-
-  //   return videoFiles.map(post => this.generateFileUrl(post));
-  // }
-
   getFileExtension(name: string): string {
     return name.substring(name.lastIndexOf('.') + 1);
   }
@@ -249,4 +249,48 @@ export class CoomerApiHelper {
 
     await RNFS.writeFile(path, data, 'utf8');
   };
+
+  splitTrafficeUrlSaveToFile = async (
+    data: string,
+    folderName: string,
+    fileName: string,
+  ) => {
+    const dirctoryFolder = `${RNFS.DownloadDirectoryPath}/${Constants.directoryName}/${folderName}`;
+
+    const dirExist = await RNFS.exists(dirctoryFolder);
+    if (!dirExist) {
+      await RNFS.mkdir(dirctoryFolder);
+      // await RNFS.unlink(dirctoryFolder);
+      // console.log(`Directory ${dirctoryFolder} removed`);
+    }
+
+    const path = `${dirctoryFolder}/${fileName}`;
+
+    const fileExist = await RNFS.exists(path);
+    if (fileExist) {
+      await ScopedStorage.deleteFile(path);
+    }
+
+    await RNFS.writeFile(path, data, 'utf8');
+  };
+
+  getRandomString(): string {
+    const arr = [
+      'https://c1.coomer.su',
+      'https://c2.coomer.su',
+      'https://c3.coomer.su',
+      'https://c4.coomer.su',
+      'https://c5.coomer.su',
+      'https://c6.coomer.su',
+    ];
+    const randomIndex = Math.floor(Math.random() * arr.length);
+    return arr[randomIndex];
+  }
+
+  splitTrafficFordownloadLinks(links: string[]): string[] {
+    return links.map(
+      link =>
+        `${link.replaceAll('https://c6.coomer.su', this.getRandomString())}`,
+    );
+  }
 }

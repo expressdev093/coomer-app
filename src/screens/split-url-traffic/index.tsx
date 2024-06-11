@@ -1,5 +1,6 @@
 import React, {useCallback, useState} from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Button,
   StyleSheet,
@@ -12,10 +13,11 @@ import DocumentPicker, {
 } from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import {Constants} from '../../constants';
+import {CoomerApiHelper} from '../../helpers';
 
-export const UrlCleanerScreen = () => {
+export const SplitUrlTrafficScreen = () => {
   const [fileResponse, setFileResponse] = useState<DocumentPickerResponse>();
-
+  const [loading, setLoading] = useState<boolean>(false);
   const handleDocumentSelection = useCallback(async () => {
     //readFile();
     try {
@@ -32,37 +34,17 @@ export const UrlCleanerScreen = () => {
     }
   }, []);
 
-  const getFilesContent = async (): Promise<string> => {
+  const getFilesContent = async (): Promise<string[]> => {
     try {
       if (fileResponse) {
         const text = await RNFS.readFile(fileResponse?.uri, 'utf8');
         const lines = text.split('\n');
-        // const cleanedLines = lines.map(line =>
-        //   line.replace(/[\r\t]+/g, '').trim(),
-        // ); //lines.map(line => line.trim());
-        // const nonEmptyLines = cleanedLines.filter(line => line.length > 0);
-
-        //.join('\n');
-
-        console.log('All', lines.length);
-        console.log(JSON.stringify(lines, null, 2));
-
-        // console.log('Cleaned', nonEmptyLines.length);
-        // console.log(JSON.stringify(nonEmptyLines, null, 2));
-        // console.log(
-        //   JSON.stringify(
-        //     content.filter(url => !url.startsWith('https://')),
-        //     null,
-        //     2,
-        //   ),
-        // );
-
-        return lines.join('\n');
+        return lines;
       }
-      return '';
+      return [];
     } catch (err: any) {
       Alert.alert('Error', err.message);
-      return '';
+      return [];
     }
   };
 
@@ -83,11 +65,25 @@ export const UrlCleanerScreen = () => {
     );
   };
 
-  const handleCleanFile = async () => {
+  const handleSplitTraffic = async () => {
+    const apiHelper = new CoomerApiHelper('');
     const folderName = getFolderName();
     const fileName = getFileName();
+    const links = await getFilesContent();
+    const splitTrafficeLinks = apiHelper.splitTrafficFordownloadLinks(links);
+    try {
+      setLoading(true);
+      await apiHelper.splitTrafficeUrlSaveToFile(
+        splitTrafficeLinks.join('\n'),
+        folderName,
+        fileName,
+      );
+      setLoading(false);
+      Alert.alert('Split link traffice saved successfully!');
+    } catch (err: any) {
+      Alert.alert('Error', err.message);
+    }
 
-    getFilesContent();
     // const dirctoryFolder = `${RNFS.DownloadDirectoryPath}/${Constants.directoryName}/${folderName}`;
     // if (!(await RNFS.exists(dirctoryFolder))) {
     //   await RNFS.mkdir(dirctoryFolder);
@@ -118,9 +114,9 @@ export const UrlCleanerScreen = () => {
 
   const getFolderName = () => {
     let filename = fileResponse?.name ?? 'Cleaner (video).txt';
-    let index = filename.indexOf('(video).txt');
-    let result = filename.substring(0, index).trim();
-    return result;
+    let strs = filename.split(' ');
+
+    return `${strs[0]} ${strs[1]}`;
   };
 
   const renderSelectFileButton = (
@@ -136,9 +132,16 @@ export const UrlCleanerScreen = () => {
     <View style={styles.container}>
       {fileResponse !== undefined ? renderclearButton : renderSelectFileButton}
       <View style={{height: 5}} />
-      {fileResponse && (
-        <Button title="Clean File 📑" onPress={handleCleanFile} />
-      )}
+      {fileResponse &&
+        (loading ? (
+          <ActivityIndicator size="large" />
+        ) : (
+          <Button
+            disabled={loading}
+            title="Split Traffic 📑"
+            onPress={handleSplitTraffic}
+          />
+        ))}
 
       {fileResponse && renderFileView(fileResponse)}
     </View>

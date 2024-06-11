@@ -280,13 +280,11 @@ export const ApiDetailScreen = () => {
         },
       );
 
-      const parseVideosLinks = apiHelper.parsePosts(
-        posts,
-        Constants.videoExtensions,
+      const parseVideosLinks = apiHelper.splitTrafficFordownloadLinks(
+        apiHelper.parsePosts(posts, Constants.videoExtensions),
       );
-      const parseImagesLinks = apiHelper.parsePosts(
-        posts,
-        Constants.imageExtensions,
+      const parseImagesLinks = apiHelper.splitTrafficFordownloadLinks(
+        apiHelper.parsePosts(posts, Constants.imageExtensions),
       );
       console.log('posts', posts.length);
       console.log('parseVideosLinks', parseVideosLinks.length);
