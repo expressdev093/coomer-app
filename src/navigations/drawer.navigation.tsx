@@ -2,9 +2,11 @@ import React from 'react';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {
   AddBookmarkScreen,
+  CreatorsScreen,
   HomeScreen,
   MergeFileScreen,
   SplitUrlTrafficScreen,
+  SyncExportedModelScreen,
 } from '../screens';
 import {CustomDrawerContent} from './components/drawer.content';
 const Drawer = createDrawerNavigator();
@@ -14,6 +16,7 @@ export const DrawerNavigation = () => {
       initialRouteName="Home"
       drawerContent={CustomDrawerContent}>
       <Drawer.Screen name="Home" component={HomeScreen} />
+      <Drawer.Screen name="Creators" component={CreatorsScreen} />
       <Drawer.Screen name="MergeFile" component={MergeFileScreen} />
       <Drawer.Screen name="AddBookmarks" component={AddBookmarkScreen} />
       <Drawer.Screen
@@ -23,6 +26,14 @@ export const DrawerNavigation = () => {
           drawerLabel: 'Split Url Traffic',
         }}
         component={SplitUrlTrafficScreen}
+      />
+      <Drawer.Screen
+        name="SyncExportedModel"
+        options={{
+          headerTitle: 'Sync Exported Models',
+          drawerLabel: 'Sync Exported Models',
+        }}
+        component={SyncExportedModelScreen}
       />
     </Drawer.Navigator>
   );

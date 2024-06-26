@@ -10,6 +10,7 @@ import SearchBar from 'react-native-search-bar';
 import {extractProviderDetails, getUsername} from '../../helpers';
 import {Model} from '../../typings';
 import {useNavigation} from '@react-navigation/native';
+import {useReadDirectoryFolders} from '../../hooks';
 
 export const ModelSearch = () => {
   const searchRef = useRef<any>(null);

@@ -14,8 +14,10 @@ import {ProfileListItem} from './components/profile-list.item';
 import SearchBar from 'react-native-search-bar';
 import RNPickerSelect from 'react-native-picker-select';
 import {Storage} from '../../helpers';
+import {useAppSelector} from '../../store';
 
 export const HomeScreen = () => {
+  const {models} = useAppSelector(state => state.exporteddModelsNames);
   const navigation = useNavigation<any>();
   const searchRef = useRef<any>(null);
   const [filteredDataSource, setFilteredDataSource] = useState<Model[]>([]);
@@ -116,6 +118,7 @@ export const HomeScreen = () => {
             model={item}
             onModelPress={onModelPress}
             isImageShow={isImageshow}
+            exported={models.find(m => m === item.name)}
           />
           // <CategoryListItem category={item} onModelPress={onModelPress} />
         )}

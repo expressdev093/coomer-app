@@ -83,25 +83,6 @@ export const SplitUrlTrafficScreen = () => {
     } catch (err: any) {
       Alert.alert('Error', err.message);
     }
-
-    // const dirctoryFolder = `${RNFS.DownloadDirectoryPath}/${Constants.directoryName}/${folderName}`;
-    // if (!(await RNFS.exists(dirctoryFolder))) {
-    //   await RNFS.mkdir(dirctoryFolder);
-    // }
-    // const content = await getFilesContent();
-    // const path = `${dirctoryFolder}/${fileName}`;
-    // const fileExists = await RNFS.exists(path);
-    // if (fileExists) {
-    //   // If file exists, remove it first
-
-    //   await RNFS.unlink(path);
-    // }
-    // try {
-    //   await RNFS.writeFile(path, content, 'utf8');
-    //   Alert.alert('File Cleaned and saved successfully!');
-    // } catch (err: any) {
-    //   Alert.alert('Error', err.message);
-    // }
   };
 
   const handleClearSelections = () => {

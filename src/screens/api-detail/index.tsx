@@ -1,12 +1,22 @@
 import {useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, Alert, StyleSheet, Text, View} from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {CoomerApiHelper, Post} from '../../helpers';
 import {Button} from 'react-native';
 import {Model} from '../../typings';
 
 import {Constants} from '../../constants';
 import {useTimer} from '../../hooks';
+import {useAppDispatch} from '../../store';
+import {ExportedModelActions} from '../../store/slices';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 // const posts: Post[] = [
 //   {
@@ -245,6 +255,7 @@ import {useTimer} from '../../hooks';
 // ];
 
 export const ApiDetailScreen = () => {
+  const dispatch = useAppDispatch();
   const [seconds, isStarted, startTimer, stopTimer, resetTimer] = useTimer();
   const navigation = useNavigation();
   const [loading, setLoading] = useState<boolean>(false);
@@ -256,6 +267,14 @@ export const ApiDetailScreen = () => {
   useEffect(() => {
     navigation.setOptions({
       headerTitle: `${model.name} ${model.provider}`,
+      headerRight: (props: any) => {
+        return (
+          <TouchableOpacity
+            onPress={() => dispatch(ExportedModelActions.add(model.name))}>
+            <MaterialIcons name="check" size={24} color={'#000'} />
+          </TouchableOpacity>
+        );
+      },
     });
   }, [navigation, model]);
 
@@ -303,6 +322,7 @@ export const ApiDetailScreen = () => {
         'images',
       );
       setLoading(false);
+      dispatch(ExportedModelActions.add(model.name));
       Alert.alert('File created and saved successfully!');
       setMessage('');
     } catch (err: any) {
