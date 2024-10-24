@@ -1,0 +1,34 @@
+import {createSlice} from '@reduxjs/toolkit';
+import type {PayloadAction} from '@reduxjs/toolkit';
+import {Creator, Model} from '../../typings';
+import {RootState} from '..';
+
+// Define a type for the slice state
+interface CreatorsState {
+  dataSource: Model[];
+  creators: Creator[];
+}
+
+// Define the initial state using that type
+const initialState: CreatorsState = {
+  dataSource: [],
+  creators: [],
+};
+
+export const creatorSlice = createSlice({
+  name: 'creators',
+  // `createSlice` will infer the state type from the `initialState` argument
+  initialState,
+  reducers: {
+    setCreators: (state, action: PayloadAction<Creator[]>) => {
+      state.creators = action.payload;
+    },
+    setDataSource: (state, action: PayloadAction<Model[]>) => {
+      state.dataSource = action.payload;
+    },
+  },
+});
+
+export const CreatorsActions = creatorSlice.actions;
+
+export const CreatorsReducer = creatorSlice.reducer;
