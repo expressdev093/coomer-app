@@ -14,8 +14,10 @@ import DocumentPicker, {
 import RNFS from 'react-native-fs';
 import {Constants} from '../../constants';
 import {CoomerApiHelper} from '../../helpers';
+import {useAppSelector} from '../../store';
 
 export const SplitUrlTrafficScreen = () => {
+  const settings = useAppSelector(state => state.settings);
   const [fileResponse, setFileResponse] = useState<DocumentPickerResponse>();
   const [loading, setLoading] = useState<boolean>(false);
   const handleDocumentSelection = useCallback(async () => {
@@ -66,7 +68,7 @@ export const SplitUrlTrafficScreen = () => {
   };
 
   const handleSplitTraffic = async () => {
-    const apiHelper = new CoomerApiHelper('');
+    const apiHelper = new CoomerApiHelper('', settings);
     const folderName = getFolderName();
     const fileName = getFileName();
     const links = await getFilesContent();

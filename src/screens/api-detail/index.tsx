@@ -14,9 +14,10 @@ import {Model} from '../../typings';
 
 import {Constants} from '../../constants';
 import {useTimer} from '../../hooks';
-import {useAppDispatch} from '../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {ExportedModelActions} from '../../store/slices';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import SingleChoiceDialog from '../../components/single-choice-dialog';
 
 // const posts: Post[] = [
 //   {
@@ -256,11 +257,14 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 export const ApiDetailScreen = () => {
   const dispatch = useAppDispatch();
+  const settings = useAppSelector(state => state.settings);
   const [seconds, isStarted, startTimer, stopTimer, resetTimer] = useTimer();
   const navigation = useNavigation();
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>();
   const {params} = useRoute<any>();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isDialogOpen, setDialogOpen] = useState(false); // State to manage modal visibility
 
   const model: Model = params.model;
 
@@ -282,7 +286,7 @@ export const ApiDetailScreen = () => {
     try {
       setLoading(true);
       setMessage('getting posts');
-      const apiHelper = new CoomerApiHelper(model.url);
+      const apiHelper = new CoomerApiHelper(model.url, settings);
       const posts = await apiHelper.startGettingPosts(
         m => {
           setMessage(m);
@@ -309,20 +313,24 @@ export const ApiDetailScreen = () => {
       console.log('parseVideosLinks', parseVideosLinks.length);
       console.log('parseImagesLinks', parseImagesLinks.length);
       setMessage('Saving Posts');
+
       await apiHelper.saveToFile(
         parseVideosLinks.join('\n'),
         model,
         parseVideosLinks.length,
         'video',
+        selectedCategory,
       );
       await apiHelper.saveToFile(
         parseImagesLinks.join('\n'),
         model,
         parseImagesLinks.length,
         'images',
+        selectedCategory,
       );
       setLoading(false);
       dispatch(ExportedModelActions.add(model.name));
+      setSelectedCategory(null);
       Alert.alert('File created and saved successfully!');
       setMessage('');
     } catch (err: any) {
@@ -332,8 +340,29 @@ export const ApiDetailScreen = () => {
     }
   };
 
+  const handleOptionSelect = (option: string) => {
+    setSelectedCategory(option);
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false); // Close the dialog when an option is selected or cancelled
+  };
+
+  const handleDialogOpen = () => {
+    setDialogOpen(true); // Open the dialog when the button is pressed
+  };
+
   return (
     <View style={styles.container}>
+      <View>
+        <Button title="Select an Option" onPress={handleDialogOpen} />
+        <SingleChoiceDialog
+          options={settings.categories}
+          onSelect={handleOptionSelect}
+          isOpen={isDialogOpen}
+          onClose={handleDialogClose}
+        />
+      </View>
       {loading && (
         <View>
           <ActivityIndicator size={'large'} />

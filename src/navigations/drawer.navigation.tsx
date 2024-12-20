@@ -11,6 +11,7 @@ import {
   SyncExportedModelScreen,
 } from '../screens';
 import {CustomDrawerContent} from './components/drawer.content';
+import {SettingsScreen} from '../screens/settings';
 const Drawer = createDrawerNavigator();
 export const DrawerNavigation = () => {
   return (
@@ -50,6 +51,14 @@ export const DrawerNavigation = () => {
           drawerLabel: 'Sync Exported Models',
         }}
         component={SyncExportedModelScreen}
+      />
+      <Drawer.Screen
+        name="Settings"
+        options={{
+          headerTitle: 'Settings',
+          drawerLabel: 'Settings',
+        }}
+        component={SettingsScreen}
       />
     </Drawer.Navigator>
   );

@@ -4,6 +4,7 @@ import RNFS from 'react-native-fs';
 import {Alert} from 'react-native';
 import {Constants} from '../constants';
 import * as ScopedStorage from 'react-native-scoped-storage';
+import {SettingsState} from '../store/slices';
 
 export type OnlyFansDetails = {
   provider: string;
@@ -65,7 +66,10 @@ export class CoomerApiHelper {
   private DOWNLOAD_URL = 'https://c6.coomer.su/data';
   private PAGE_SIZE = 50;
   private API_URL = '';
-  constructor(private readonly profileUrl: string) {}
+  constructor(
+    private readonly profileUrl: string,
+    private readonly settings: SettingsState,
+  ) {}
   async fetchPosts(offset: number = 0): Promise<Post[]> {
     this.API_URL = this.profileUrl.replace(
       'https://coomer.su',
@@ -99,12 +103,12 @@ export class CoomerApiHelper {
       posts.push(...fetchedPosts);
       callbackFetchingSize(`${posts.length} posts are fetched`);
       offset += this.PAGE_SIZE;
-      if (offset % 5000 === 0) {
-        callbackDelay('Start 30 seconds delay', true);
+      if (offset % this.settings.maximumRequest === 0) {
+        callbackDelay(`Start ${this.settings.waitingTime} seconds delay`, true);
         console.log('Added 30 seconds delay');
-        await this.delay(30000); // Delay for 30 seconds
+        await this.delay(this.settings.waitingTime * 1000); // Delay for 30 seconds
         console.log('Added 30 seconds delay compeleted');
-        callbackDelay('Ends 30 seconds delay', false);
+        callbackDelay(`Ends ${this.settings.waitingTime} seconds delay`, false);
       }
     }
 
@@ -229,9 +233,12 @@ export class CoomerApiHelper {
     model: Model,
     length: number,
     type: 'video' | 'images' = 'video',
+    category?: string | null,
   ) => {
     const fileName = `${model.name} ${model.provider} (${length} ${type}).txt`;
-    const dirctoryFolder = `${RNFS.DownloadDirectoryPath}/${Constants.directoryName}/${model.name} ${model.provider}`;
+    const dirctoryFolder = category
+      ? `${RNFS.DownloadDirectoryPath}/${Constants.directoryName}/${category}/${model.name} ${model.provider}`
+      : `${RNFS.DownloadDirectoryPath}/${Constants.directoryName}/${model.name} ${model.provider}`;
 
     const dirExist = await RNFS.exists(dirctoryFolder);
     if (!dirExist) {
@@ -275,14 +282,17 @@ export class CoomerApiHelper {
   };
 
   getRandomString(): string {
-    const arr = [
-      'https://c1.coomer.su',
-      'https://c2.coomer.su',
-      'https://c3.coomer.su',
-      'https://c4.coomer.su',
-      'https://c5.coomer.su',
-      'https://c6.coomer.su',
-    ];
+    // const arr = [
+    //   'https://c1.coomer.su',
+    //   'https://c2.coomer.su',
+    //   'https://c3.coomer.su',
+    //   'https://c4.coomer.su',
+    //   'https://c5.coomer.su',
+    //   'https://c6.coomer.su',
+    // ];
+    const arr = this.settings.domains.map(
+      domain => `https://${domain}.coomer.su`,
+    );
     const randomIndex = Math.floor(Math.random() * arr.length);
     return arr[randomIndex];
   }

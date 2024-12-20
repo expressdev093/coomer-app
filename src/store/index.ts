@@ -1,19 +1,19 @@
 import {configureStore, combineReducers} from '@reduxjs/toolkit';
 
 import {useDispatch, useSelector} from 'react-redux';
-import {CreatorsReducer, ExporedModelReducer} from './slices';
+import {CreatorsReducer, ExporedModelReducer, SettingReducer} from './slices';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {persistStore, persistReducer} from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
 const persistConfig = {
   key: 'coomer-su-redux',
   storage: AsyncStorage,
-  whitelist: ['exporteddModelsNames'],
+  whitelist: ['exporteddModelsNames','settings'],
 };
 
 const reducers = combineReducers({
   exporteddModelsNames: ExporedModelReducer,
   creators: CreatorsReducer,
+  settings: SettingReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, reducers);
