@@ -6,6 +6,7 @@ export type Model = {
   url: string;
   text: string;
   category?: string;
+  creator?: Creator;
 };
 
 export type Category = {
@@ -18,4 +19,13 @@ export type Page = {
   model: Model;
   pageLink: string;
   fileName: string;
+};
+
+export type Creator = {
+  favorited: number;
+  id: string;
+  indexed: number;
+  name: string;
+  service: string;
+  updated: number;
 };

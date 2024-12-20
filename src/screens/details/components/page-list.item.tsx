@@ -60,7 +60,7 @@ export const PageListItem: React.FC<Props> = ({
         mtime: new Date(),
         name: `${fileName}`,
         path: `${RNFS.DownloadDirectoryPath}/coomer/${page.model.name}/${fileName}`,
-        size: 1487,
+        size: 0,
       } as any);
       Alert.alert('File created and saved successfully!');
     } catch (err) {

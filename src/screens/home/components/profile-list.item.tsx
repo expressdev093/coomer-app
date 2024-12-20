@@ -9,16 +9,19 @@ import {
   View,
 } from 'react-native';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 type Props = {
   model: Model;
   onModelPress: (model: Model) => void;
   isImageShow: boolean;
+  exported?: string;
 };
 
 export const ProfileListItem: React.FC<Props> = ({
   model,
   onModelPress,
   isImageShow,
+  exported,
 }) => {
   const handleOpenInBrowser = () => {
     Linking.openURL(model.url);
@@ -38,10 +41,13 @@ export const ProfileListItem: React.FC<Props> = ({
           <Text style={styles.categoryText}>{model.category}</Text>
         </View>
       </View>
-      <View>
+      <View style={styles.actions}>
         <TouchableOpacity onPress={handleOpenInBrowser}>
           <FontAwesome6 name="firefox-browser" size={24} color="black" />
         </TouchableOpacity>
+        {exported && (
+          <MaterialIcons name="check-circle" size={28} color="green" />
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -53,6 +59,9 @@ const styles = StyleSheet.create({
     height: 200,
     elevation: 4,
     backgroundColor: '#fff',
+  },
+  actions: {
+    justifyContent: 'space-between',
   },
   item: {
     flexDirection: 'row',

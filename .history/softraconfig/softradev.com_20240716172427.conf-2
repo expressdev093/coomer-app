@@ -1,0 +1,49 @@
+server {
+    server_name softradev.com www.softradev.com;
+
+    root /var/www/softradev.com/public_html;
+    index index.php index.html index.htm;
+
+    access_log /var/log/nginx/softradev_access.log;
+    error_log /var/log/nginx/softradev_error.log;
+
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+#	fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+        expires max;
+        log_not_found off;
+    }
+
+    listen [::]:443 ssl; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/softradev.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/softradev.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+server {
+    if ($host = www.softradev.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    if ($host = softradev.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    listen 80;
+    listen [::]:80;
+    server_name softradev.com www.softradev.com;
+    return 404; # managed by Certbot
+}
