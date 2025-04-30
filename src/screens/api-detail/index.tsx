@@ -12,7 +12,7 @@ import {CoomerApiHelper, Post} from '../../helpers';
 import {Button} from 'react-native';
 import {Model} from '../../typings';
 
-import {Constants} from '../../constants';
+import {Constants, defaultPosts} from '../../constants';
 import {useTimer} from '../../hooks';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {ExportedModelActions} from '../../store/slices';
@@ -310,29 +310,50 @@ export const ApiDetailScreen = () => {
         },
       );
 
+      // const videos = await apiHelper.parsePostsV2(
+      //   posts,
+      //   Constants.videoExtensions,
+      //   m => {
+      //     setMessage(m);
+      //   },
+      // );
+
       const parseVideosLinks = apiHelper.splitTrafficFordownloadLinks(
         apiHelper.parsePosts(posts, Constants.videoExtensions),
       );
       const parseImagesLinks = apiHelper.splitTrafficFordownloadLinks(
         apiHelper.parsePosts(posts, Constants.imageExtensions),
       );
-      console.log('posts', posts.length);
-      console.log('parseVideosLinks', parseVideosLinks.length);
-      console.log('parseImagesLinks', parseImagesLinks.length);
+
       setMessage('Saving Posts');
 
       await apiHelper.saveToFile(
+        `${model.name} ${model.provider} (${parseVideosLinks.length} video).txt`,
         parseVideosLinks.join('\n'),
         model,
-        parseVideosLinks.length,
-        'video',
+        selectedCategory,
+      );
+
+      // await apiHelper.saveToFile(
+      //   `${model.name} ${model.provider} (Raw).txt`,
+      //   JSON.stringify(videos.raw, null, 2),
+      //   model,
+      //   selectedCategory,
+      // );
+      await apiHelper.saveToFile(
+        `${model.name} ${model.provider} (${parseImagesLinks.length} image).txt`,
+        parseImagesLinks.join('\n'),
+        model,
         selectedCategory,
       );
       await apiHelper.saveToFile(
-        parseImagesLinks.join('\n'),
+        `${model.name} ${model.provider} (info).txt`,
+        JSON.stringify(
+          {...model, category: selectedCategory || 'default'},
+          null,
+          2,
+        ),
         model,
-        parseImagesLinks.length,
-        'images',
         selectedCategory,
       );
       setLoading(false);

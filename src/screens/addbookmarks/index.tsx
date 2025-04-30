@@ -23,9 +23,12 @@ import {
   makeBookmarkFlat,
   removeOtherLinksAndEmptyCategory,
 } from '../../helpers';
+import {useAppDispatch, useAppSelector} from '../../store';
 
 export const AddBookmarkScreen = () => {
   const [loading, setLoading] = useState<boolean>(false);
+  const {dataSource} = useAppSelector(state => state.creators);
+  const dispatch = useAppDispatch();
   const [fileResponse, setFileResponse] = useState<DocumentPickerResponse>();
 
   const handleDocumentSelection = useCallback(async () => {
@@ -49,11 +52,20 @@ export const AddBookmarkScreen = () => {
     try {
       setLoading(true);
       const categories: Category[] = await getBookmarkJson(fileResponse);
+
       const selectCategoriesOptions = getCategorySelectLabelAndValue(
         removeOtherLinksAndEmptyCategory(categories),
       );
 
-      const models = makeBookmarkFlat(categories);
+      const models = makeBookmarkFlat(categories).map(raw => ({
+        ...raw,
+        image: `https://img.coomer.su/icons/${raw.provider
+          .replace(/"/g, '')
+          .toLowerCase()}/${raw.id}`, // remove escaped quotes
+        name: raw.name.replace(/"/g, ''),
+        provider: raw.provider.replace(/"/g, ''),
+        text: raw.text.replace(/"/g, ''),
+      }));
 
       await Storage.setBookmark(models);
       await Storage.setCategories(selectCategoriesOptions);

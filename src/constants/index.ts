@@ -24,6 +24,51 @@ export const Constants = {
   imageExtensions: ['.jpg', '.jpeg'],
 };
 
+export const defaultPosts: any[] = [
+  {
+    id: '927894587',
+    user: 'josiejaxxonvip',
+    service: 'onlyfans',
+    title: '*Hot Tub + Shower Fuck*\n\nI can’t get enough of @hattrickz91!..',
+    content:
+      '*Hot Tub + Shower Fuck*\n\nI can’t get enough of @hattrickz91! What started out as relaxing in the hot tub turned into me taking his huge dick right in the backyard. Then we went to the shower to wash off, he had me on my knees and filled up my pussy with a fat load 😏',
+    embed: {},
+    shared_file: false,
+    added: '2024-03-24T13:46:27.607693',
+    published: '2024-02-09T15:25:41',
+    edited: null,
+    file: {
+      name: '0hmnmp7xkq0czjngrns7o_source.mp4',
+      path: '/f3/a2/f3a20256feba7d3ee270920188d89dbd3ca11fae32b1d383a9ff0c562ba6e8c1.mp4',
+    },
+    attachments: [],
+    poll: null,
+    captions: null,
+    tags: null,
+  },
+  {
+    id: '926959383',
+    user: 'josiejaxxonvip',
+    service: 'onlyfans',
+    title: '*BBC ANAL CREAMPIE*\n\nI had so much fun with @flightlifexxx i..',
+    content:
+      '*BBC ANAL CREAMPIE*\n\nI had so much fun with @flightlifexxx in LA. While we were fucking, he couldn’t help but put a finger in my ass- which obviously led to me taking his thick cock in my ass too 🤤 I fucking love anal, and he loved cumming in my asshole 😈',
+    embed: {},
+    shared_file: false,
+    added: '2024-03-24T13:55:52.894008',
+    published: '2024-02-08T21:36:37',
+    edited: null,
+    file: {
+      name: '0hmmrry5tg66acmeu1tqn_source.mp4',
+      path: '/62/e6/62e642a6204901da7de3084708a45accad91d1defd54c338c3fea39b47e57d0f.mp4',
+    },
+    attachments: [],
+    poll: null,
+    captions: null,
+    tags: null,
+  },
+];
+
 // const url = [
 //   'https://c6.coomer.su/data/85/e3/85e39d1b6b1cb3dd18a509fd8db979e4e91fb784cbe4814d85ce6830c47766d8.mp4?f=2022-07-13 20 Afternoon delight 🌞♥️ (OnlyFans) 1716805989165.mp4',
 //   'https://c5.coomer.su/data/e1/3f/e13f3f5dce59f10dc78f1aac0d432a92b969f2bdf5c68732ad9e4a959bbb4756.mp4?f=2022-07-10 21 Ass & titties, ass & titties 🍒 🍑 (OnlyFans) 1716805989948.mp4',

@@ -1,4 +1,4 @@
-import axios, {AxiosError, isAxiosError} from 'axios';
+import axios, {AxiosError, AxiosResponse, isAxiosError} from 'axios';
 import {Model} from '../typings';
 import RNFS from 'react-native-fs';
 import {Alert} from 'react-native';
@@ -60,6 +60,11 @@ export interface Post {
   poll: any;
   captions: any;
   tags: any;
+  downloadableUrls: any[];
+}
+
+export interface PostDetail {
+  post: {};
 }
 
 export class CoomerApiHelper {
@@ -151,6 +156,8 @@ export class CoomerApiHelper {
         return false;
       });
 
+    console.log(JSON.stringify(posts, null, 2));
+
     const downloadUrls: string[] = [];
     videoFiles
       .map(post => {
@@ -165,6 +172,110 @@ export class CoomerApiHelper {
     return downloadUrls
       .filter(url => filterExtensions.some(ext => url.endsWith(ext)))
       .filter(link => link.startsWith('https://'));
+  }
+
+  async parsePostsV2(
+    posts: Post[],
+    filterExtensions: string[],
+    callbackPostProgress: (message: string) => void,
+  ): Promise<{raw: Post[]; downloadable: string[]}> {
+    const videoFiles = posts
+      //.filter(post => post.file && post.file.name)
+      .filter(post => {
+        // Check if 'file' property is a video file
+        if (post.file && post.file.name) {
+          const fileName = post.file.name.toLowerCase();
+          return filterExtensions.some(ext => fileName.endsWith(ext));
+        }
+
+        // Check if any attachment is a video file
+        if (
+          post.attachments &&
+          post.attachments.some(att => {
+            const fileName = att.name.toLowerCase();
+            return filterExtensions.some(ext => fileName.endsWith(ext));
+          })
+        ) {
+          return true;
+        }
+
+        return false;
+      });
+
+    const postsWithLinks = await Promise.all(
+      videoFiles.map(async (post, index) => {
+        // Notify the start of fetching for each post
+        callbackPostProgress(
+          `Fetching post ${index + 1} of ${videoFiles.length}`,
+        );
+
+        // Get downloadable URLs for the post (assuming this method fetches data)
+        const postWithLink = await this.getDownloadUrlFromApi(post);
+
+        // Notify the end of fetching for each post
+        callbackPostProgress(
+          `Finished fetching post ${index + 1} of ${videoFiles.length}`,
+        );
+
+        return postWithLink;
+      }),
+    );
+
+    const downloadables = postsWithLinks.map(p => p.downloadableUrls).flat();
+
+    return {
+      raw: postsWithLinks,
+      downloadable: downloadables,
+    };
+
+    // const downloadUrls: string[] = [];
+    // videoFiles
+    //   .map(post => {
+    //     const url = this.generateFileUrl(post);
+    //     const attachmentUrls = this.generateUrlsFromAttachments(post);
+    //     return url ? [url, ...attachmentUrls] : attachmentUrls;
+    //   })
+    //   .forEach(u => {
+    //     downloadUrls.push(...u);
+    //   });
+
+    // return downloadUrls
+    //   .filter(url => filterExtensions.some(ext => url.endsWith(ext)))
+    //   .filter(link => link.startsWith('https://'));
+  }
+
+  async getDownloadUrlFromApi(post: Post) {
+    const url = `https://coomer.su/api/v1/${post.service}/user/${post.user}/post/${post.id}`;
+    const response = await axios.get(url);
+
+    return this.generateDownloadableUrls(response, post);
+  }
+
+  generateDownloadableUrls(response: AxiosResponse, originalPost: Post): Post {
+    const attachments = response.data?.attachments || [];
+    const post = response.data?.post;
+    const published = this.formatePublishedDate(post.published);
+    const title = this.sanitizeFileNameV2(post.title);
+    const id = post.id;
+    let fileName = `${published}_${title}_${id}`;
+    const senitizeFileName = this.sanitizeFileNameV2(fileName);
+
+    const downloadableUrls = attachments.map((attachment: any) => {
+      return `${attachment.server}/data${attachment.path}?f=${senitizeFileName}${attachment.extension}`;
+    });
+
+    return {
+      ...originalPost,
+      downloadableUrls: downloadableUrls,
+    };
+  }
+
+  sanitizeFileNameV2(title: string): string {
+    // Remove newlines, extra spaces, and special characters that are not safe for filenames
+    return title
+      .replace(/\s+/g, '_') // Replace spaces and newlines with underscores
+      .replace(/[^\w\-]/g, '') // Remove non-alphanumeric characters (except for hyphen and underscore)
+      .toLowerCase(); // Optionally, convert everything to lowercase (if needed)
   }
 
   getFileExtension(name: string): string {
@@ -229,13 +340,12 @@ export class CoomerApiHelper {
   }
 
   saveToFile = async (
+    fileName: string,
     data: string,
     model: Model,
-    length: number,
-    type: 'video' | 'images' = 'video',
     category?: string | null,
   ) => {
-    const fileName = `${model.name} ${model.provider} (${length} ${type}).txt`;
+    //const fileName = `${model.name} ${model.provider} (${length} ${type}).txt`;
     const dirctoryFolder = category
       ? `${RNFS.DownloadDirectoryPath}/${Constants.directoryName}/${category}/${model.name} ${model.provider}`
       : `${RNFS.DownloadDirectoryPath}/${Constants.directoryName}/${model.name} ${model.provider}`;
