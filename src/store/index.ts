@@ -7,7 +7,7 @@ import {persistStore, persistReducer} from 'redux-persist';
 const persistConfig = {
   key: 'coomer-su-redux',
   storage: AsyncStorage,
-  whitelist: ['exporteddModelsNames','settings'],
+  whitelist: ['exporteddModelsNames', 'settings'],
 };
 
 const reducers = combineReducers({

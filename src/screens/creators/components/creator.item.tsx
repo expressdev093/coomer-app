@@ -15,7 +15,7 @@ type Props = {
   model: Model;
   onModelPress: (model: Model) => void;
   isImageShow: boolean;
-  exported?: string;
+  exportedModel?: Model;
   creator: Creator;
 };
 
@@ -23,7 +23,7 @@ export const CreateListItem: React.FC<Props> = ({
   model,
   onModelPress,
   isImageShow,
-  exported,
+  exportedModel,
   creator,
 }) => {
   const handleOpenInBrowser = () => {
@@ -45,7 +45,9 @@ export const CreateListItem: React.FC<Props> = ({
       <Image source={{uri: model.image}} style={styles.image} />
 
       <View style={styles.textContainer}>
-        <Text style={styles.name}>{model.name}</Text>
+        <Text style={styles.name}>
+          {model.name} {exportedModel && `(${exportedModel.category})`}
+        </Text>
         <Text style={styles.provider}>
           {model.provider} ({creator?.favorited})
         </Text>
@@ -59,7 +61,7 @@ export const CreateListItem: React.FC<Props> = ({
         <TouchableOpacity onPress={handleOpenInBrowser}>
           <FontAwesome6 name="firefox-browser" size={24} color="black" />
         </TouchableOpacity>
-        {exported && (
+        {exportedModel && (
           <MaterialIcons name="check-circle" size={28} color="green" />
         )}
       </View>

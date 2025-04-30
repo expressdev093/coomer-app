@@ -1,16 +1,17 @@
 import {createSlice} from '@reduxjs/toolkit';
 import type {PayloadAction} from '@reduxjs/toolkit';
 import {Model} from '../../typings';
-import {RootState} from '..';
 
 // Define a type for the slice state
 interface ExportedModelState {
   models: string[];
+  modelsObj: Model[];
 }
 
 // Define the initial state using that type
 const initialState: ExportedModelState = {
   models: [],
+  modelsObj: [],
 };
 
 export const exportedModelSlice = createSlice({
@@ -37,6 +38,15 @@ export const exportedModelSlice = createSlice({
     },
     remove: (state, action: PayloadAction<string>) => {
       state.models = state.models.filter(m => m !== action.payload);
+    },
+    addBulkModels(state, action: PayloadAction<Model[]>) {
+      state.modelsObj = action.payload || [];
+    },
+
+    addModels(state, action: PayloadAction<Model>) {
+      state.modelsObj = state.modelsObj.map(model =>
+        model.id === action.payload.id ? action.payload : model,
+      );
     },
   },
 });

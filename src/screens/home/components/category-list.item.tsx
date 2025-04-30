@@ -1,17 +1,14 @@
-import React from "react";
-import { Category, Model } from "../../../typings";
-import { StyleSheet, Text, View } from "react-native";
-import { SubList } from "./sub-list";
+import React from 'react';
+import {Category, Model} from '../../../typings';
+import {StyleSheet, Text, View} from 'react-native';
+import {SubList} from './sub-list';
 
 type Props = {
   category: Category;
   onModelPress: (model: Model) => void;
 };
 
-export const CategoryListItem: React.FC<Props> = ({
-  category,
-  onModelPress,
-}) => {
+export const CategoryListItem: React.FC<Props> = ({category, onModelPress}) => {
   return (
     <View>
       <Text style={styles.title}>{category.category}</Text>
@@ -22,8 +19,8 @@ export const CategoryListItem: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   title: {
-    backgroundColor: "blue",
-    color: "white",
+    backgroundColor: 'blue',
+    color: 'white',
     paddingHorizontal: 10,
     paddingVertical: 2,
   },

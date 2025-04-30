@@ -29,3 +29,8 @@ export type Creator = {
   service: string;
   updated: number;
 };
+
+export type DirectoryModel = {
+  name: string;
+  category: string;
+};

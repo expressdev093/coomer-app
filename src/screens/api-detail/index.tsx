@@ -274,7 +274,14 @@ export const ApiDetailScreen = () => {
       headerRight: (props: any) => {
         return (
           <TouchableOpacity
-            onPress={() => dispatch(ExportedModelActions.add(model.name))}>
+            onPress={() =>
+              dispatch(
+                ExportedModelActions.addModels({
+                  ...model,
+                  category: selectedCategory || 'default',
+                }),
+              )
+            }>
             <MaterialIcons name="check" size={24} color={'#000'} />
           </TouchableOpacity>
         );
@@ -329,7 +336,12 @@ export const ApiDetailScreen = () => {
         selectedCategory,
       );
       setLoading(false);
-      dispatch(ExportedModelActions.add(model.name));
+      dispatch(
+        ExportedModelActions.addModels({
+          ...model,
+          category: selectedCategory || 'default',
+        }),
+      );
       setSelectedCategory(null);
       Alert.alert('File created and saved successfully!');
       setMessage('');

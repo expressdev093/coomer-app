@@ -14,14 +14,14 @@ type Props = {
   model: Model;
   onModelPress: (model: Model) => void;
   isImageShow: boolean;
-  exported?: string;
+  exportedModel?: Model;
 };
 
 export const ProfileListItem: React.FC<Props> = ({
   model,
   onModelPress,
   isImageShow,
-  exported,
+  exportedModel,
 }) => {
   const handleOpenInBrowser = () => {
     Linking.openURL(model.url);
@@ -40,12 +40,21 @@ export const ProfileListItem: React.FC<Props> = ({
         <View style={styles.categoryView}>
           <Text style={styles.categoryText}>{model.category}</Text>
         </View>
+        <View
+          style={[
+            styles.categoryView,
+            {marginTop: 2, backgroundColor: 'green'},
+          ]}>
+          <Text style={styles.categoryText}>
+            Exported: {exportedModel?.category}
+          </Text>
+        </View>
       </View>
       <View style={styles.actions}>
         <TouchableOpacity onPress={handleOpenInBrowser}>
           <FontAwesome6 name="firefox-browser" size={24} color="black" />
         </TouchableOpacity>
-        {exported && (
+        {exportedModel && (
           <MaterialIcons name="check-circle" size={28} color="green" />
         )}
       </View>

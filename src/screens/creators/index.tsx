@@ -34,7 +34,7 @@ export const CreatorsScreen = () => {
   const {dataSource, isLoaded, isLoading} = useAppSelector(
     state => state.creators,
   );
-  const {models} = useAppSelector(state => state.exporteddModelsNames);
+  const {modelsObj} = useAppSelector(state => state.exporteddModelsNames);
   const navigation = useNavigation<any>();
   const searchRef = useRef<SearchBar>(null);
 
@@ -166,7 +166,7 @@ export const CreatorsScreen = () => {
         model={item}
         onModelPress={onModelPress}
         isImageShow={isImageshow}
-        exported={models.find(m => m === item.name)}
+        exportedModel={modelsObj.find(m => m.id === item.id)}
         creator={item.creator!}
       />
     );

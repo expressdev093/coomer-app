@@ -12,6 +12,7 @@ import {
 } from '../screens';
 import {CustomDrawerContent} from './components/drawer.content';
 import {SettingsScreen} from '../screens/settings';
+import {ExportedModelsScreen} from '../screens/exported-models';
 const Drawer = createDrawerNavigator();
 export const DrawerNavigation = () => {
   return (
@@ -20,6 +21,14 @@ export const DrawerNavigation = () => {
       drawerContent={CustomDrawerContent}>
       <Drawer.Screen name="Home" component={HomeScreen} />
       <Drawer.Screen name="Creators" component={CreatorsScreen} />
+      <Drawer.Screen
+        name="ExportedModels"
+        options={{
+          headerTitle: 'Exported Models',
+          drawerLabel: 'Exported Models',
+        }}
+        component={ExportedModelsScreen}
+      />
       <Drawer.Screen
         name="BunkrAlbumExtractor"
         component={BunkrAlbumExtractorScreen}
@@ -52,6 +61,7 @@ export const DrawerNavigation = () => {
         }}
         component={SyncExportedModelScreen}
       />
+
       <Drawer.Screen
         name="Settings"
         options={{
