@@ -1,10 +1,28 @@
-import React, {useRef, useState} from 'react';
-import {Alert, Button, StyleSheet, Text, View} from 'react-native';
-import {useAppSelector} from '../../store';
+import React, {useEffect, useRef, useState} from 'react';
+import {
+  Alert,
+  Button,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {CoomerService} from '../../helpers/coomer/CoomerService';
 import {SaveFile} from '../../helpers/coomer/SaveFile';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {CreatorDto} from '../../typings/typings.v2';
+import {ExportedModelActions} from '../../store/slices';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import SingleChoiceDialog from '../../components/single-choice-dialog';
 
-export const ModelSearch = () => {
+export const CreatorV2Detail = () => {
+  const dispatch = useAppDispatch();
+  const {params} = useRoute<any>();
+  const navigation = useNavigation();
+  const creator: CreatorDto = params.creator;
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isDialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>();
   const [totalPosts, setTotalPosts] = useState<number>(0);
@@ -21,8 +39,8 @@ export const ModelSearch = () => {
       setLoading(true);
       //await coomerService.addVideoSizes(createrPostsWithDetails);
       const posts = await coomerService.getUserPosts(
-        'onlyfans',
-        'josiejaxxonvip',
+        creator.service,
+        creator.id,
         count => {
           setMessage(`Fetched ${count} posts`);
         },
@@ -51,30 +69,19 @@ export const ModelSearch = () => {
         postWithVideoWithSizes,
       );
 
+      const folderPath = `${selectedCategory}/${creator.name} ${creator.service}`;
+
       await saveFile.save({
-        fileName: `josiejaxxonvip onlyfans (${videos.length} videos).txt`,
-        folderPath: 'category/josiejaxxonvip onlyfans',
+        fileName: `${creator.name} ${creator.service} (${videos.length} videos).txt`,
+        folderPath: folderPath,
         content: videos.join('\n'),
       });
 
       await saveFile.save({
-        fileName: 'josiejaxxonvip-onlyfans-posts.txt',
-        folderPath: 'category/josiejaxxonvip onlyfans',
+        fileName: `${creator.name}-${creator.service}-posts.txt`,
+        folderPath: folderPath,
         content: JSON.stringify(postWithVideoWithSizes),
       });
-
-      // await coomerService.addVideoSizes(createrPostsWithDetails);
-      // const posts = await coomerService.attachPostDetailsToPosts(
-      //   creatorPosts,
-      //   count => {
-      //     console.log(`Fetched ${count} posts`);
-      //     setMessage(`Fetched ${count} posts`);
-      //   },
-      //   secondsLeft => {
-      //     console.log(`Waiting... ${secondsLeft}s`);
-      //     setMessage(`Waiting... ${secondsLeft}s`);
-      //   },
-      // );
 
       Alert.alert('File created and saved successfully!');
       setMessage('');
@@ -86,8 +93,51 @@ export const ModelSearch = () => {
     }
   };
 
+  useEffect(() => {
+    navigation.setOptions({
+      headerTitle: `${creator.name} ${creator.service}`,
+      headerRight: (props: any) => {
+        return (
+          <TouchableOpacity
+            onPress={
+              () => {}
+              //   dispatch(
+              //     ExportedModelActions.addModels({
+              //       ...model,
+              //       category: selectedCategory || 'default',
+              //     }),
+              //   )
+            }>
+            <MaterialIcons name="check" size={24} color={'#000'} />
+          </TouchableOpacity>
+        );
+      },
+    });
+  }, [navigation, creator]);
+
+  const handleOptionSelect = (option: string) => {
+    setSelectedCategory(option);
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false); // Close the dialog when an option is selected or cancelled
+  };
+
+  const handleDialogOpen = () => {
+    setDialogOpen(true); // Open the dialog when the button is pressed
+  };
+
   return (
     <View style={styles.container}>
+      <View>
+        <Button title="Select an Option" onPress={handleDialogOpen} />
+        <SingleChoiceDialog
+          options={settings.categories}
+          onSelect={handleOptionSelect}
+          isOpen={isDialogOpen}
+          onClose={handleDialogClose}
+        />
+      </View>
       <Text>Found Posts {totalPosts}</Text>
       <Button
         title="Fetch Posts"

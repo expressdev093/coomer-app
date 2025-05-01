@@ -31,10 +31,6 @@ export const CustomDrawerContent: React.FC<Props> = props => {
   return (
     <DrawerContentScrollView>
       <DrawerItemList {...props} />
-      <DrawerItem
-        label="Model Search"
-        onPress={() => props.navigation.navigate('ModelSearch')}
-      />
       <DrawerItem label="Storage Folder" onPress={handleSetStorageDir} />
       <View style={styles.switchItem}>
         <Text style={styles.switchItemLabel}>Show/Hide Image</Text>

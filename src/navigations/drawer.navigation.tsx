@@ -13,6 +13,7 @@ import {
 import {CustomDrawerContent} from './components/drawer.content';
 import {SettingsScreen} from '../screens/settings';
 import {ExportedModelsScreen} from '../screens/exported-models';
+import {CreatorsV2Screen} from '../screens/creatorsv2/creator-v2.list';
 const Drawer = createDrawerNavigator();
 export const DrawerNavigation = () => {
   return (
@@ -21,6 +22,7 @@ export const DrawerNavigation = () => {
       drawerContent={CustomDrawerContent}>
       <Drawer.Screen name="Home" component={HomeScreen} />
       <Drawer.Screen name="Creators" component={CreatorsScreen} />
+      <Drawer.Screen name="CreatorsV2" component={CreatorsV2Screen} />
       <Drawer.Screen
         name="ExportedModels"
         options={{

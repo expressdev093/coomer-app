@@ -9,22 +9,22 @@ import {
   Text,
   View,
 } from 'react-native';
-import {Creator, Model} from '../../typings';
 import axios from 'axios';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {useNavigation} from '@react-navigation/native';
 import SearchBar from 'react-native-search-bar';
-import {CreateListItem} from './components/creator.item';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import RNPickerSelect from 'react-native-picker-select';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {CreatorsActions} from '../../store/slices';
-import {ICreatorFilter} from '../../typings/typings.v2';
+import {CreatorsV2Actions} from '../../store/slices';
+import {CreatorDto, ICreatorFilter} from '../../typings/typings.v2';
+import {CoomerService} from '../../helpers/coomer/CoomerService';
+import {CreateListItemV2} from './components/creator.item';
 
 const ITEM_HEIGHT = 200;
 
-export const CreatorsScreen = () => {
+export const CreatorsV2Screen = () => {
   const [filter, setFilter] = useState<ICreatorFilter>({
     provider: 'All',
     search: undefined,
@@ -33,11 +33,16 @@ export const CreatorsScreen = () => {
   });
   const dispatch = useAppDispatch();
   const {dataSource, isLoaded, isLoading} = useAppSelector(
-    state => state.creators,
+    state => state.creatorsV2,
   );
+  const settings = useAppSelector(state => state.settings);
   const {modelsObj} = useAppSelector(state => state.exporteddModelsNames);
   const navigation = useNavigation<any>();
   const searchRef = useRef<SearchBar>(null);
+  const coomerService = new CoomerService({
+    ...settings,
+    maximumRequest: 30,
+  });
 
   const [isImageshow, setImageShow] = useState<boolean>(false);
 
@@ -89,44 +94,30 @@ export const CreatorsScreen = () => {
 
   const getCreators = async () => {
     try {
-      dispatch(CreatorsActions.setLoading(true));
-      const response = await axios.get<Creator[]>(
-        'https://coomer.su/api/v1/creators.txt',
-        {
-          headers: {
-            //Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-        },
-      );
+      dispatch(CreatorsV2Actions.setLoading(true));
+      const creators = await coomerService.getCreators();
 
-      const listCreators = response.data;
-      listCreators.sort((a, b) => b.indexed - a.indexed);
-      //setCreators(response.data);
-      const mapModels: Model[] = listCreators.map(c => ({
-        id: c.id,
-        image: `https://img.coomer.su/icons/${c.service}/${c.id}`,
-        name: c.name,
-        provider: c.service,
-        url: `https://coomer.su/${c.service}/user/${c.id}`,
-        text: c.name,
-        category: '',
-        creator: c,
+      creators.sort((a, b) => b.indexed - a.indexed);
+      //setCreators(response.data)
+      const mapCreators = creators.map(creator => ({
+        ...creator,
+        imageUrl: `https://img.coomer.su/icons/${creator.service}/${creator.id}`,
+        profileUrl: `https://coomer.su/${creator.service}/user/${creator.id}`,
       }));
 
-      dispatch(CreatorsActions.setCreators(listCreators));
-      dispatch(CreatorsActions.setDataSource(mapModels));
+      dispatch(CreatorsV2Actions.setCreators(mapCreators));
+      dispatch(CreatorsV2Actions.setDataSource(mapCreators));
     } catch (err: any) {
       console.log(err);
       console.log(JSON.stringify(err, null, 2));
-      dispatch(CreatorsActions.setLoading(false));
+      dispatch(CreatorsV2Actions.setLoading(false));
       Alert.alert('Error', err.message);
     }
   };
 
   const onModelPress = useCallback(
-    (model: Model) => {
-      navigation.navigate('ApiDetail', {model: model});
+    (creator: CreatorDto) => {
+      navigation.navigate('CreatorV2Detail', {creator: creator});
     },
     [navigation],
   );
@@ -161,21 +152,20 @@ export const CreatorsScreen = () => {
     setFilter(prevState => ({...prevState, provider: text}));
   };
 
-  const renderItem = useCallback(({item}: ListRenderItemInfo<Model>) => {
+  const renderItem = useCallback(({item}: ListRenderItemInfo<CreatorDto>) => {
     return (
-      <CreateListItem
-        model={item}
+      <CreateListItemV2
         onModelPress={onModelPress}
         isImageShow={isImageshow}
         exportedModel={modelsObj.find(m => m.id === item.id)}
-        creator={item.creator!}
+        creator={item}
       />
     );
   }, []);
 
   useEffect(() => {
     if (isLoaded) {
-      dispatch(CreatorsActions.filterDataSource(filter));
+      dispatch(CreatorsV2Actions.filterDataSource(filter));
     }
   }, [isLoaded, filter]);
 

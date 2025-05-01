@@ -8,6 +8,7 @@ import {
 } from '../screens';
 import {Text, TouchableOpacity, View} from 'react-native';
 import {DrawerNavigation} from './drawer.navigation';
+import {CreatorV2Detail} from '../screens/creatorsv2/creator-v2.detail';
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +25,7 @@ export const RootNavigation = () => {
       />
       <Stack.Screen name="Detail" component={DetailScreen} />
       <Stack.Screen name="ApiDetail" component={ApiDetailScreen} />
+      <Stack.Screen name="CreatorV2Detail" component={CreatorV2Detail} />
       <Stack.Screen name="ModelSearch" component={ModelSearch} />
     </Stack.Navigator>
   );

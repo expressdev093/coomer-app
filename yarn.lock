@@ -6104,6 +6104,11 @@ react-native-document-picker@^9.2.0:
   dependencies:
     invariant "^2.2.4"
 
+react-native-foreground-service@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.npmjs.org/react-native-foreground-service/-/react-native-foreground-service-1.0.0.tgz"
+  integrity sha512-lZTF0gFKVh4pnI8C0vXKxTBeZxlbfYCy4wPl5O7mkbBLr8F1vZJvmZYMhh4+P5oM285z/CaWB00ckMTZPG7G9w==
+
 react-native-fs@^2.20.0:
   version "2.20.0"
   resolved "https://registry.npmjs.org/react-native-fs/-/react-native-fs-2.20.0.tgz"
@@ -6198,7 +6203,7 @@ react-native-vector-icons@^10.1.0:
     prop-types "^15.7.2"
     yargs "^16.1.1"
 
-react-native@*, "react-native@^0.0.0-0 || >=0.60 <1.0", react-native@>=0.40, react-native@>=0.70.0, react-native@0.74.1:
+react-native@*, "react-native@^0.0.0-0 || >=0.60 <1.0", react-native@>=0.40, react-native@>=0.59.0, react-native@>=0.70.0, react-native@0.74.1:
   version "0.74.1"
   resolved "https://registry.npmjs.org/react-native/-/react-native-0.74.1.tgz"
   integrity sha512-0H2XpmghwOtfPpM2LKqHIN7gxy+7G/r1hwJHKLV6uoyXGC/gCojRtoo5NqyKrWpFC8cqyT6wTYCLuG7CxEKilg==

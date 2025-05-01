@@ -1,5 +1,6 @@
 import {makeBookmarkFlat} from '../helpers';
 import {Category} from '../typings';
+import {CreatorPostDto} from '../typings/typings.v2';
 
 export const Constants = {
   bookmarks: makeBookmarkFlat(
@@ -1213,4 +1214,90 @@ export const exportedModels: string[] = [
   'EllieRenee',
   'josiejaxxonvip',
   'dhelene',
+];
+
+export const creatorPosts: CreatorPostDto[] = [
+  {
+    id: '926815284',
+    user: 'josiejaxxonvip',
+    service: 'onlyfans',
+    title: '*Car Sex, Anal, Facial!*\n\nRoad trips are more fun when you f..',
+    content:
+      '*Car Sex, Anal, Facial!*\n\nRoad trips are more fun when you fuck! Our friend drives while @taylormadexxx fucks me! I cream all over his big dick, he sticks it in my ass, then gives me a facial! We pulled into a gas station and my face was covered with cum!',
+    embed: {},
+    shared_file: false,
+    added: '2024-03-24T13:59:13.929402',
+    published: '2024-02-08T19:55:30',
+    edited: null,
+    file: {
+      name: '0hmmou9ujla0ewdn1dec3_source.mp4',
+      path: '/7c/30/7c307880c2005f1a9a1abff462025883fdad626eee0511f393d423363ac93f8b.mp4',
+    },
+    attachments: [],
+    poll: null,
+    captions: null,
+    tags: null,
+  },
+  {
+    id: '926810439',
+    user: 'josiejaxxonvip',
+    service: 'onlyfans',
+    title: '*Big Booty Lesbians*\n\nI know you like big booty tatted brune..',
+    content:
+      '*Big Booty Lesbians*\n\nI know you like big booty tatted brunettes.. how about TWO of them fucking each other?! Me and @xxirismaexx had so much fun eating each other’s pussies and sharing a double ended dildo. This is one of my favorite lesbian scenes ever!',
+    embed: {},
+    shared_file: false,
+    added: '2024-03-24T14:06:31.654052',
+    published: '2024-02-08T19:52:25',
+    edited: null,
+    file: {
+      name: '0hmmopadn0c2mc0av5ac8_source.mp4',
+      path: '/d4/52/d452d73dd42a1abc61bfb7e374e3d83739014f63f0e0a22f527402dab8a5e2d6.mp4',
+    },
+    attachments: [],
+    poll: null,
+    captions: null,
+    tags: null,
+  },
+  {
+    id: '926800227',
+    user: 'josiejaxxonvip',
+    service: 'onlyfans',
+    title: '*DP/DVP MFM Threesome!*\n\nThe day after @thecalideep fucked m..',
+    content:
+      '*DP/DVP MFM Threesome!*\n\nThe day after @thecalideep fucked my ass in front of hubby, he came back for round 2! This time we let @mrjaxxon join in on the fun! They spit roasted me, then filled my ass and pussy at the same time! I was so horny I even had them put both their cocks in my pussy at the same time. It was only the second time I had ever done DVP! Hubby gave me a facial and then Cali made me swallow his big load 😈',
+    embed: {},
+    shared_file: false,
+    added: '2024-03-24T14:14:35.337633',
+    published: '2024-02-08T19:46:30',
+    edited: null,
+    file: {
+      name: '0hmmo9xoq35kth5l4w1vq_source.mp4',
+      path: '/a5/1a/a51acadbaf218b7d16797133aa3ed8a405f45f9bd5c88a7068e80bf1ca5f8d28.mp4',
+    },
+    attachments: [],
+    poll: null,
+    captions: null,
+    tags: null,
+  },
+  {
+    id: '828203450',
+    user: 'josiejaxxonvip',
+    service: 'onlyfans',
+    title: '',
+    content: '',
+    embed: {},
+    shared_file: false,
+    added: '2024-03-24T14:14:39.483702',
+    published: '2023-11-29T13:47:28',
+    edited: null,
+    file: {
+      name: '951x1207_4d22f8876ba45cc654dc53c3ae3881c0.jpg',
+      path: '/23/0d/230d885837cd5cbb195ce8d7dfffe04a81d59fa394843f2cbe91456967226927.jpg',
+    },
+    attachments: [],
+    poll: null,
+    captions: null,
+    tags: null,
+  },
 ];

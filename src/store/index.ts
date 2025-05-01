@@ -1,7 +1,12 @@
 import {configureStore, combineReducers} from '@reduxjs/toolkit';
 
 import {useDispatch, useSelector} from 'react-redux';
-import {CreatorsReducer, ExporedModelReducer, SettingReducer} from './slices';
+import {
+  CreatorsReducer,
+  ExporedModelReducer,
+  SettingReducer,
+  CreatorsV2Reducer,
+} from './slices';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {persistStore, persistReducer} from 'redux-persist';
 const persistConfig = {
@@ -13,6 +18,7 @@ const persistConfig = {
 const reducers = combineReducers({
   exporteddModelsNames: ExporedModelReducer,
   creators: CreatorsReducer,
+  creatorsV2: CreatorsV2Reducer,
   settings: SettingReducer,
 });
 

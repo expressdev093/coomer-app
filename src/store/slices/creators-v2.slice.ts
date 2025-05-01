@@ -1,21 +1,19 @@
 import {createSlice} from '@reduxjs/toolkit';
 import type {PayloadAction} from '@reduxjs/toolkit';
-import {Creator, Model} from '../../typings';
-import {RootState} from '..';
-import {ICreatorFilter} from '../../typings/typings.v2';
+import {CreatorDto, ICreatorFilter} from '../../typings/typings.v2';
 
 // Define a type for the slice state
-interface CreatorsState {
-  mainDataSource: Model[];
-  dataSource: Model[];
-  creators: Creator[];
+interface CreatorsV2State {
+  mainDataSource: CreatorDto[];
+  dataSource: CreatorDto[];
+  creators: CreatorDto[];
   isLoaded: boolean;
   isLoading: boolean;
   filter?: ICreatorFilter;
 }
 
 // Define the initial state using that type
-const initialState: CreatorsState = {
+const initialState: CreatorsV2State = {
   mainDataSource: [],
   dataSource: [],
   creators: [],
@@ -23,15 +21,15 @@ const initialState: CreatorsState = {
   isLoading: false,
 };
 
-export const creatorSlice = createSlice({
+export const creatorV2Slice = createSlice({
   name: 'creators',
   // `createSlice` will infer the state type from the `initialState` argument
   initialState,
   reducers: {
-    setCreators: (state, action: PayloadAction<Creator[]>) => {
+    setCreators: (state, action: PayloadAction<CreatorDto[]>) => {
       state.creators = action.payload;
     },
-    setDataSource: (state, action: PayloadAction<Model[]>) => {
+    setDataSource: (state, action: PayloadAction<CreatorDto[]>) => {
       state.isLoaded = true;
       state.isLoading = false;
       state.mainDataSource = action.payload;
@@ -47,7 +45,7 @@ export const creatorSlice = createSlice({
       // Filter by provider
       if (action.payload.provider !== 'All') {
         filteredData = filteredData.filter(
-          item => item.provider === action.payload.provider,
+          item => item.service === action.payload.provider,
         );
       }
 
@@ -83,6 +81,6 @@ export const creatorSlice = createSlice({
   },
 });
 
-export const CreatorsActions = creatorSlice.actions;
+export const CreatorsV2Actions = creatorV2Slice.actions;
 
-export const CreatorsReducer = creatorSlice.reducer;
+export const CreatorsV2Reducer = creatorV2Slice.reducer;

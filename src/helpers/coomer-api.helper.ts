@@ -1,5 +1,5 @@
 import axios, {AxiosError, AxiosResponse, isAxiosError} from 'axios';
-import {Model} from '../typings';
+import {Model, Post} from '../typings';
 import RNFS from 'react-native-fs';
 import {Alert} from 'react-native';
 import {Constants} from '../constants';
@@ -27,45 +27,6 @@ export const extractProviderDetails = (url: string): OnlyFansDetails => {
     throw new Error('Invalid URL format');
   }
 };
-
-interface File {
-  name: string;
-  path: string;
-}
-
-export interface Post {
-  id: string;
-  user: string;
-  embed: any;
-  service:
-    | 'patreon'
-    | 'fanbox'
-    | 'discord'
-    | 'fantia'
-    | 'afdian'
-    | 'boosty'
-    | 'gumroad'
-    | 'subscribestar'
-    | 'onlyfans'
-    | 'fansly'
-    | 'candfans';
-  title: string;
-  content: string;
-  shared_file: boolean;
-  added: string;
-  published: string;
-  edited: Date | null;
-  file: File | any;
-  attachments: File[];
-  poll: any;
-  captions: any;
-  tags: any;
-  downloadableUrls: any[];
-}
-
-export interface PostDetail {
-  post: {};
-}
 
 export class CoomerApiHelper {
   private DOWNLOAD_URL = 'https://c6.coomer.su/data';
