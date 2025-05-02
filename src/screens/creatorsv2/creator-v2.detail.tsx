@@ -15,6 +15,9 @@ import {CreatorDto} from '../../typings/typings.v2';
 import {ExportedModelActions} from '../../store/slices';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import SingleChoiceDialog from '../../components/single-choice-dialog';
+import BackgroundService from 'react-native-background-actions';
+import {PermissionsAndroid, Platform} from 'react-native';
+import {useCreatorQueue} from '../../hooks/creatorQueueHook';
 
 export const CreatorV2Detail = () => {
   const dispatch = useAppDispatch();
@@ -34,64 +37,107 @@ export const CreatorV2Detail = () => {
 
   const saveFile = new SaveFile();
 
-  const fetchCreatorPost = async () => {
-    try {
-      setLoading(true);
-      //await coomerService.addVideoSizes(createrPostsWithDetails);
-      const posts = await coomerService.getUserPosts(
-        creator.service,
-        creator.id,
-        count => {
-          setMessage(`Fetched ${count} posts`);
-        },
-        secondsLeft => {
-          setMessage(`Waiting... ${secondsLeft}s`);
-        },
-      );
+  const {queueCreator} = useCreatorQueue({
+    selectedCategory,
+    coomerService,
+    saveFile,
+    setMessage,
+    setTotalPosts,
+    setLoading,
+  });
 
-      setTotalPosts(posts.length);
-      setMessage('');
+  //   const veryIntensiveTask = async (taskData: any) => {
+  //     const {
+  //       creator,
+  //       selectedCategory,
+  //       coomerService,
+  //       saveFile,
+  //       setMessage,
+  //       setTotalPosts,
+  //       setLoading,
+  //     } = taskData;
 
-      const postsWithVideos = await coomerService.attachPostDetailsToPosts(
-        posts,
-        (fetched: number, total: number) => {
-          setMessage(`fetched ${fetched}/${total}`);
-        },
-      );
+  //     try {
+  //       const posts = await coomerService.getUserPosts(
+  //         creator.service,
+  //         creator.id,
+  //         (count: number) => setMessage(`Fetched ${count} posts`),
+  //         (secondsLeft: number) => setMessage(`Waiting... ${secondsLeft}s`),
+  //       );
 
-      const postWithVideoWithSizes = await coomerService.addVideoSizes(
-        postsWithVideos,
-        (fetched: number, total: number) => {
-          setMessage(`fetched vide size ${fetched}/${total}`);
-        },
-      );
-      const videos = coomerService.getDownloadUrlsFromPosts(
-        postWithVideoWithSizes,
-      );
+  //       setTotalPosts(posts.length);
+  //       setMessage('');
 
-      const folderPath = `${selectedCategory}/${creator.name} ${creator.service}`;
+  //       const postsWithVideos = await coomerService.attachPostDetailsToPosts(
+  //         posts,
+  //         (fetched: number, total: number) =>
+  //           setMessage(`Fetched post details ${fetched}/${total}`),
+  //       );
 
-      await saveFile.save({
-        fileName: `${creator.name} ${creator.service} (${videos.length} videos).txt`,
-        folderPath: folderPath,
-        content: videos.join('\n'),
+  //       await coomerService.addVideoSizes(
+  //         postsWithVideos,
+  //         (fetched: number, total: number) =>
+  //           setMessage(`Fetched video size ${fetched}/${total}`),
+  //       );
+
+  //       const videos = coomerService.getDownloadUrlsFromPosts(postsWithVideos);
+
+  //       const folderPath = `${selectedCategory}/${creator.name} ${creator.service}`;
+
+  //       await saveFile.save({
+  //         fileName: `${creator.name} ${creator.service} (${videos.length} videos).txt`,
+  //         folderPath,
+  //         content: videos.join('\n'),
+  //       });
+
+  //       await saveFile.save({
+  //         fileName: `${creator.name}-${creator.service}-posts.txt`,
+  //         folderPath,
+  //         content: JSON.stringify(postsWithVideos),
+  //       });
+
+  //       Alert.alert('Success', 'Files saved successfully');
+  //     } catch (error: any) {
+  //       console.error(error);
+  //       Alert.alert('Error', error.message || 'Something went wrong');
+  //     } finally {
+  //       setLoading(false);
+  //       await BackgroundService.stop();
+  //     }
+  //   };
+
+  //   const fetchCreatorPost = async () => {
+  //     const options = {
+  //       taskName: `${creator.name} ${creator.service}`,
+  //       taskTitle: `Downloading ${creator.name} ${creator.service} Content`,
+  //       taskDesc: 'Fetching posts and video sizes...',
+  //       taskIcon: {
+  //         name: 'ic_launcher', // Ensure this icon exists in res/drawable
+  //         type: 'mipmap',
+  //       },
+  //       color: '#ff6600',
+  //       linkingURI: '', // Optional: open app on notification tap
+  //       parameters: {
+  //         creator,
+  //         selectedCategory,
+  //         coomerService,
+  //         saveFile,
+  //         setMessage,
+  //         setTotalPosts,
+  //         setLoading,
+  //       },
+  //     };
+
+  //     await BackgroundService.start(veryIntensiveTask, options);
+  //   };
+
+  useEffect(() => {
+    (async () => {
+      await BackgroundService.updateNotification({
+        taskDesc: message || '',
       });
-
-      await saveFile.save({
-        fileName: `${creator.name}-${creator.service}-posts.txt`,
-        folderPath: folderPath,
-        content: JSON.stringify(postWithVideoWithSizes),
-      });
-
-      Alert.alert('File created and saved successfully!');
-      setMessage('');
-    } catch (error: any) {
-      console.log(error);
-      Alert.alert('Error', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    })();
+  }, [message]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -142,7 +188,7 @@ export const CreatorV2Detail = () => {
       <Button
         title="Fetch Posts"
         disabled={loading}
-        onPress={fetchCreatorPost}
+        onPress={() => queueCreator(creator)}
       />
       <Text>{message}</Text>
     </View>

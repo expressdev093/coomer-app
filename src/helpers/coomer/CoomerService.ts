@@ -11,11 +11,16 @@ import {COOMER_ENDPOINTS} from './endpoints';
 
 export class CoomerService {
   private client: CoomerApiClient;
+  private postDetailCache = new Map<string, CreatorPostDetailResponseDto>();
+  private videoSizeCache = new Map<
+    string,
+    {size: number; formattedSize: string; downloadUrl: string}
+  >();
+
   constructor(private readonly settings: SettingsState) {
     this.client = new CoomerApiClient();
   }
 
-  // Helper function to handle rate-limited requests
   private async rateLimitedRequest<T>(
     url: string,
     params?: Record<string, any>,
@@ -23,12 +28,11 @@ export class CoomerService {
   ): Promise<T> {
     let requestCount = 0;
 
-    // Wait helper function
     const wait = (seconds: number): Promise<void> =>
       new Promise(resolve => {
         let remaining = seconds;
         const interval = setInterval(() => {
-          if (onWait) onWait(remaining); // Update UI on wait time
+          onWait?.(remaining);
           remaining--;
           if (remaining <= 0) {
             clearInterval(interval);
@@ -37,16 +41,13 @@ export class CoomerService {
         }, 1000);
       });
 
-    // Requesting with rate-limiting
     const fetchWithRateLimit = async (): Promise<T> => {
       if (requestCount >= this.settings.maximumRequest) {
-        await wait(this.settings.waitingTime); // Wait if max requests are reached
-        requestCount = 0; // Reset the request count
+        await wait(this.settings.waitingTime);
+        requestCount = 0;
       }
-
       const response = await this.client.get<T>(url, params);
       requestCount++;
-
       return response;
     };
 
@@ -91,36 +92,34 @@ export class CoomerService {
     creatorId: string,
     postId: string,
   ): Promise<CreatorPostDetailResponseDto> {
-    const delay = (ms: number) =>
-      new Promise(resolve => setTimeout(resolve, ms));
+    const cacheKey = `${service}:${creatorId}:${postId}`;
+    if (this.postDetailCache.has(cacheKey)) {
+      return this.postDetailCache.get(cacheKey)!;
+    }
 
-    // Add a delay before sending the request to avoid hitting rate limits
-    await delay(300); // 300ms delay
-
-    const response = await this.client.get<CreatorPostDetailResponseDto>(
+    const result = await this.client.get<CreatorPostDetailResponseDto>(
       COOMER_ENDPOINTS.specificPost(service, creatorId, postId),
-      {},
     );
 
-    return response;
+    this.postDetailCache.set(cacheKey, result);
+    return result;
   }
 
-  // Function to fetch the post details for each creator and attach them to posts
   async attachPostDetailsToPosts(
     posts: CreatorPostDto[],
     onProgress?: (fetched: number, total: number) => void,
   ): Promise<CreatorPostDto[]> {
     const total = posts.length;
-    let requestCount = 0;
+    let fetched = 0;
 
-    for (let i = 0; i < posts.length; i++) {
-      const post = posts[i];
+    await this.runWithConcurrency(posts, 10, async post => {
       try {
         const detail = await this.getPostDetails(
           post.service,
           post.user,
           post.id,
         );
+
         post.videos = detail.videos || [];
       } catch (err) {
         console.error(
@@ -129,85 +128,92 @@ export class CoomerService {
         );
       }
 
-      requestCount++;
-      onProgress?.(requestCount, total);
-    }
+      fetched++;
+      onProgress?.(fetched, total);
+    });
 
     return posts;
   }
-
-  //need function get video size in mb gb format for every url the function accepsts posts: CreatorPostDto[] iterate to every post within every get videos from post.postDetailResponse?.videos this the array combine server and path to make url note after server add /data then path this will be the prefect url i want to just hit the url and get this size with mb or gb format and attach to the current video.size as string
 
   async addVideoSizes(
     posts: CreatorPostDto[],
     onProgress?: (fetched: number, total: number) => void,
   ): Promise<CreatorPostDto[]> {
-    const delay = (ms: number) =>
-      new Promise(resolve => setTimeout(resolve, ms));
+    let total = 0;
+    let fetched = 0;
+    const videosWithPost = posts.flatMap(post =>
+      (post.videos || []).map(video => ({post, video})),
+    );
 
-    let totalVideos = 0;
-    let fetchedVideos = 0;
+    total = videosWithPost.length;
 
-    // First, count the total number of videos across all posts
-    posts.forEach(post => {
-      if (post.videos) {
-        totalVideos += post.videos.length;
-      }
-    });
+    await this.runWithConcurrency(videosWithPost, 10, async ({post, video}) => {
+      const url = `${video.server}/data${video.path}`;
 
-    for (const post of posts) {
-      const videos = post?.videos;
-      if (!videos) continue;
-
-      for (const video of videos) {
+      if (this.videoSizeCache.has(url)) {
+        const cached = this.videoSizeCache.get(url)!;
+        video.size = cached.size;
+        video.formattedSize = cached.formattedSize;
+        video.downloadUrl = cached.downloadUrl;
+      } else {
         try {
-          const url = `${video.server}/data${video.path}`;
-
           const response = await axios.head(url);
           const contentLength = parseInt(
             response.headers['content-length'] || '0',
             10,
           );
 
-          if (!isNaN(contentLength)) {
-            video.size = contentLength;
-            const formattedSize = this.getFormattedSize(contentLength);
-            video.formattedSize = formattedSize;
-            video.downloadUrl = `${url}?f=${this.generateFilename(
-              post.id,
-              post.title,
-              post.published,
-              formattedSize,
-              video.extension,
-            )}`;
-          } else {
-            video.size = 0;
-            video.formattedSize = 'Unknown';
-            video.downloadUrl = `${url}?f=${this.generateFilename(
-              post.id,
-              post.title,
-              post.published,
-              '',
-              video.extension,
-            )}`;
-          }
-        } catch (error) {
+          const size = isNaN(contentLength) ? 0 : contentLength;
+          const formattedSize = isNaN(contentLength)
+            ? 'Unknown'
+            : this.getFormattedSize(contentLength);
+          const downloadUrl = `${url}?f=${this.generateFilename(
+            post.id,
+            post.title,
+            post.published,
+            formattedSize,
+            video.extension,
+          )}`;
+
+          video.size = size;
+          video.formattedSize = formattedSize;
+          video.downloadUrl = downloadUrl;
+
+          this.videoSizeCache.set(url, {size, formattedSize, downloadUrl});
+        } catch {
           video.size = 0;
           video.formattedSize = 'Error';
         }
+      }
 
-        // Update progress after each video is processed
-        fetchedVideos++;
-        if (onProgress) {
-          onProgress(fetchedVideos, totalVideos);
-        }
+      fetched++;
+      onProgress?.(fetched, total);
+    });
 
-        // Add delay to avoid rate limits
-        await delay(300);
+    return posts;
+  }
+
+  async runWithConcurrency<T>(
+    items: T[],
+    limit: number,
+    handler: (item: T) => Promise<void>,
+  ) {
+    const executing: Promise<void>[] = [];
+
+    for (const item of items) {
+      const p = handler(item);
+      executing.push(p);
+
+      if (executing.length >= limit) {
+        await Promise.race(executing);
+        executing.splice(
+          0,
+          executing.findIndex(p => p === Promise.race(executing)) + 1,
+        );
       }
     }
 
-    return posts;
+    await Promise.all(executing);
   }
 
   generateFilename(
@@ -222,23 +228,19 @@ export class CoomerService {
     const mm = String(date.getMonth() + 1).padStart(2, '0');
     const dd = String(date.getDate()).padStart(2, '0');
 
-    // Sanitize title to remove special characters and limit length
     const safeTitle = (postTitle || 'untitled')
-      .replace(/[<>:"/\\|?*\x00-\x1F]/g, '') // Remove illegal file characters
-      .replace(/\s+/g, '_') // Replace spaces with underscores
-      .slice(0, 50); // Optional: limit title length
+      .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
+      .replace(/\s+/g, '_')
+      .slice(0, 50);
 
     return `${yyyy}_${mm}_${dd}_${safeTitle}_${postId}_(${videoSize})${extension}`;
   }
 
   getFormattedSize(contentLength: number): string {
     const sizeInMB = contentLength / (1024 * 1024);
-    const formattedSize =
-      sizeInMB >= 1024
-        ? `${(sizeInMB / 1024).toFixed(2)} GB`
-        : `${sizeInMB.toFixed(2)} MB`;
-
-    return formattedSize;
+    return sizeInMB >= 1024
+      ? `${(sizeInMB / 1024).toFixed(2)} GB`
+      : `${sizeInMB.toFixed(2)} MB`;
   }
 
   getDownloadUrlsFromPosts(posts: CreatorPostDto[]) {
