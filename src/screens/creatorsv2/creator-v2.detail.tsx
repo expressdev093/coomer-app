@@ -30,6 +30,7 @@ export const CreatorV2Detail = () => {
   const [message, setMessage] = useState<string>();
   const [totalPosts, setTotalPosts] = useState<number>(0);
   const settings = useAppSelector(state => state.settings);
+  const {modelsObj} = useAppSelector(state => state.exporteddModelsNames);
   const coomerService: CoomerService = new CoomerService({
     ...settings,
     maximumRequest: 30,
@@ -172,6 +173,27 @@ export const CreatorV2Detail = () => {
   const handleDialogOpen = () => {
     setDialogOpen(true); // Open the dialog when the button is pressed
   };
+
+  // useEffect(() => {
+  //   const exportedCreators: CreatorDto[] = modelsObj.map(model => ({
+  //     id: model.creator?.id!,
+  //     name: model.creator?.name!,
+  //     service: model.provider,
+  //     imageUrl: model.image,
+  //     profileUrl: model.url,
+  //     favorited: model.creator?.favorited!,
+  //     indexed: model.creator?.indexed!,
+  //     updated: model.creator?.updated!,
+  //   }));
+  //   (async () => {
+  //     await saveFile.save({
+  //       fileName: 'exportedmodel.txt',
+  //       folderPath: '',
+  //       content: JSON.stringify(exportedCreators, null, 2),
+  //     });
+  //   })();
+  // }, [saveFile, modelsObj]);
+  // console.log(JSON.stringify(modelsObj, null, 2));
 
   return (
     <View style={styles.container}>

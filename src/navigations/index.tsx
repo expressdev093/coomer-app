@@ -9,6 +9,7 @@ import {
 import {Text, TouchableOpacity, View} from 'react-native';
 import {DrawerNavigation} from './drawer.navigation';
 import {CreatorV2Detail} from '../screens/creatorsv2/creator-v2.detail';
+import {ExportedModelDetailScreen} from '../screens/exported-models/exported-model-detail.screen';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,6 +28,10 @@ export const RootNavigation = () => {
       <Stack.Screen name="ApiDetail" component={ApiDetailScreen} />
       <Stack.Screen name="CreatorV2Detail" component={CreatorV2Detail} />
       <Stack.Screen name="ModelSearch" component={ModelSearch} />
+      <Stack.Screen
+        name="ExportedModelDetail"
+        component={ExportedModelDetailScreen}
+      />
     </Stack.Navigator>
   );
 };

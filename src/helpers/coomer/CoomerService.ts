@@ -3,11 +3,14 @@ import {SettingsState} from '../../store/slices';
 import {
   CreatorDto,
   CreatorPostDetailDto,
+  CreatorPostDetailFileDto,
   CreatorPostDetailResponseDto,
   CreatorPostDto,
+  CreatorPostVideoDto,
 } from '../../typings/typings.v2';
 import {CoomerApiClient} from './CoomerApiClient';
 import {COOMER_ENDPOINTS} from './endpoints';
+import {Constants} from '../../constants';
 
 export class CoomerService {
   private client: CoomerApiClient;
@@ -250,5 +253,136 @@ export class CoomerService {
       .flat()
       .map(v => v.downloadUrl)
       .filter(u => u !== undefined);
+  }
+
+  extractVideosFromPosts(posts: CreatorPostDto[]): CreatorPostDto[] {
+    return posts.map(post => this.extractVideosFromPost(post));
+  }
+
+  extractVideosFromPost(post: CreatorPostDto): CreatorPostDto {
+    const attachments = post.attachments || [];
+    if (post.file && post.file.path) {
+      attachments.push(post.file);
+    }
+    const videos = this.extractVideoFromPostAttachments(attachments)
+      .filter(v => v !== null)
+      .filter(
+        (v, index, self) =>
+          self.findIndex(other => other?.path === v?.path) === index,
+      )
+      .map((v, i) => ({
+        ...v,
+        index: i,
+      }));
+    post.videos = videos;
+    return post;
+  }
+
+  extractVideoFromPostAttachments(
+    attachments: CreatorPostDetailFileDto[],
+  ): (CreatorPostVideoDto | null)[] {
+    return attachments.map(attachment =>
+      this.extractVideoFromPostFile(attachment),
+    );
+  }
+
+  extractVideoFromPostFile(
+    file: CreatorPostDetailFileDto,
+  ): CreatorPostVideoDto | null {
+    if (!file || !file.path) return null;
+    const path = file.path;
+    const extensionMatch = path.match(/\.\w+$/);
+    const extension = extensionMatch ? extensionMatch[0] : '.mp4';
+    const isVideo = Constants.videoExtensions.includes(extension);
+
+    if (!isVideo) {
+      return null;
+    }
+    const urlsToCheck = this.settings.domains.map(
+      domain => `https://${domain}.coomer.su/data${path}`,
+    );
+    return {
+      index: 0,
+      extension: extension,
+      path: path,
+      name: file?.name || '',
+      urlsToCheck: urlsToCheck,
+      name_extension: extension,
+      server: '',
+    };
+  }
+
+  async resolveValidVideoUrlsAndSetSize(
+    posts: CreatorPostDto[],
+    onProgress?: (fetched: number, total: number) => void,
+  ): Promise<CreatorPostDto[]> {
+    const totalVideos = posts.reduce(
+      (sum, post) => sum + (post.videos?.length || 0),
+      0,
+    );
+    let fetchedVideos = 0;
+
+    for (const post of posts) {
+      if (!post.videos) continue;
+
+      for (const video of post.videos) {
+        let resolved = false;
+
+        for (const url of video.urlsToCheck || []) {
+          if (this.videoSizeCache.has(url)) {
+            const cached = this.videoSizeCache.get(url);
+            video.size = cached?.size;
+            video.formattedSize = cached?.formattedSize;
+            video.downloadUrl = cached?.downloadUrl;
+            resolved = true;
+            break;
+          }
+
+          try {
+            const response = await axios.head(url);
+            const contentLength = parseInt(
+              response.headers['content-length'] || '0',
+              10,
+            );
+
+            const size = isNaN(contentLength) ? 0 : contentLength;
+            const formattedSize = isNaN(contentLength)
+              ? 'Unknown'
+              : this.getFormattedSize(contentLength);
+
+            const downloadUrl = `${url}?f=${this.generateFilename(
+              post.id,
+              post.title,
+              post.published,
+              formattedSize,
+              video.extension,
+            )}`;
+
+            video.size = size;
+            video.formattedSize = formattedSize;
+            video.downloadUrl = downloadUrl;
+            video.urlsToCheck = [];
+
+            this.videoSizeCache.set(url, {size, formattedSize, downloadUrl});
+            resolved = true;
+            break;
+          } catch (err) {
+            // Try next URL in list
+            continue;
+          }
+        }
+
+        if (!resolved) {
+          video.size = 0;
+          video.formattedSize = 'Error';
+          video.downloadUrl = '';
+        }
+
+        fetchedVideos++;
+        onProgress?.(fetchedVideos, totalVideos);
+      }
+    }
+
+    return posts;
   }
 }

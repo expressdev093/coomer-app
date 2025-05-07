@@ -52,24 +52,34 @@ export const useCreatorQueue = ({
 
         setTotalPosts(posts.length);
         setMessage('');
+        const postsWithVideos = coomerService.extractVideosFromPosts(posts);
+        const videosWithSize =
+          await coomerService.resolveValidVideoUrlsAndSetSize(
+            postsWithVideos,
+            (fetched: number, total: number) =>
+              setMessage(
+                `Fetched post details ${fetched}/${total} for ${creator.name}`,
+              ),
+          );
+        // console.log(JSON.stringify(postsWithVideos, null, 2));
 
-        const postsWithVideos = await coomerService.attachPostDetailsToPosts(
-          posts,
-          (fetched: number, total: number) =>
-            setMessage(
-              `Fetched post details ${fetched}/${total} for ${creator.name}`,
-            ),
-        );
+        // const postsWithVideos = await coomerService.attachPostDetailsToPosts(
+        // posts,
+        // (fetched: number, total: number) =>
+        //   setMessage(
+        //     `Fetched post details ${fetched}/${total} for ${creator.name}`,
+        //   ),
+        // );
 
-        await coomerService.addVideoSizes(
-          postsWithVideos,
-          (fetched: number, total: number) =>
-            setMessage(
-              `Fetched video size ${fetched}/${total} for ${creator.name}`,
-            ),
-        );
+        // await coomerService.addVideoSizes(
+        //   postsWithVideos,
+        //   (fetched: number, total: number) =>
+        //     setMessage(
+        //       `Fetched video size ${fetched}/${total} for ${creator.name}`,
+        //     ),
+        // );
 
-        const videos = coomerService.getDownloadUrlsFromPosts(postsWithVideos);
+        const videos = coomerService.getDownloadUrlsFromPosts(videosWithSize);
         const folderPath = `${selectedCategory}/${creator.name} ${creator.service}`;
 
         await saveFile.save({
@@ -82,6 +92,16 @@ export const useCreatorQueue = ({
           fileName: `${creator.name}-${creator.service}-posts.txt`,
           folderPath,
           content: JSON.stringify(postsWithVideos),
+        });
+
+        await saveFile.save({
+          fileName: `${creator.name} ${creator.service} (info).txt`,
+          folderPath,
+          content: JSON.stringify(
+            {...creator, category: selectedCategory || 'default'},
+            null,
+            2,
+          ),
         });
 
         setMessage(`Finished ${creator.name}`);

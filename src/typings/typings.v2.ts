@@ -31,6 +31,8 @@ export interface CreatorDto {
 
   imageUrl?: string;
   profileUrl?: string;
+
+  category?: string;
 }
 
 export interface CreatorPostFileDto {
@@ -101,6 +103,7 @@ export interface CreatorPostVideoDto {
   size?: number;
   formattedSize?: string;
   downloadUrl?: string;
+  urlsToCheck: string[];
 }
 
 export interface CreatorPostDetailResponseDto {

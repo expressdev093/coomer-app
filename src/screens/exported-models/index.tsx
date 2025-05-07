@@ -18,7 +18,6 @@ import SearchBar from 'react-native-search-bar';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import RNPickerSelect from 'react-native-picker-select';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {CreatorsActions, ICreatorFilter} from '../../store/slices';
 import {CreateListItem} from '../creators/components/creator.item';
 
 const ITEM_HEIGHT = 200;
@@ -29,8 +28,6 @@ export const ExportedModelsScreen = () => {
   const searchRef = useRef<SearchBar>(null);
   const {modelsObj} = useAppSelector(state => state.exporteddModelsNames);
   const navigation = useNavigation<any>();
-
-  console.log(searchText);
 
   const dataSource = useMemo(() => {
     return modelsObj.filter(model => {
@@ -58,7 +55,7 @@ export const ExportedModelsScreen = () => {
 
   const onModelPress = useCallback(
     (model: Model) => {
-      navigation.navigate('ApiDetail', {model: model});
+      navigation.navigate('ExportedModelDetail', {model: model});
     },
     [navigation],
   );
